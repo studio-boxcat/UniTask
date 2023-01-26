@@ -3844,67 +3844,6 @@ namespace Cysharp.Threading.Tasks.Triggers
 #endif
 #endregion
 
-#region Move
-#if !UNITY_2019_1_OR_NEWER || UNITASK_UGUI_SUPPORT
-
-    public interface IAsyncOnMoveHandler
-    {
-        UniTask<AxisEventData> OnMoveAsync();
-    }
-
-    public partial class AsyncTriggerHandler<T> : IAsyncOnMoveHandler
-    {
-        UniTask<AxisEventData> IAsyncOnMoveHandler.OnMoveAsync()
-        {
-            core.Reset();
-            return new UniTask<AxisEventData>((IUniTaskSource<AxisEventData>)(object)this, core.Version);
-        }
-    }
-
-    public static partial class AsyncTriggerExtensions
-    {
-        public static AsyncMoveTrigger GetAsyncMoveTrigger(this GameObject gameObject)
-        {
-            return GetOrAddComponent<AsyncMoveTrigger>(gameObject);
-        }
-        
-        public static AsyncMoveTrigger GetAsyncMoveTrigger(this Component component)
-        {
-            return component.gameObject.GetAsyncMoveTrigger();
-        }
-    }
-
-    [DisallowMultipleComponent]
-    public sealed class AsyncMoveTrigger : AsyncTriggerBase<AxisEventData>, IMoveHandler
-    {
-        void IMoveHandler.OnMove(AxisEventData eventData)
-        {
-            RaiseEvent((eventData));
-        }
-
-        public IAsyncOnMoveHandler GetOnMoveAsyncHandler()
-        {
-            return new AsyncTriggerHandler<AxisEventData>(this, false);
-        }
-
-        public IAsyncOnMoveHandler GetOnMoveAsyncHandler(CancellationToken cancellationToken)
-        {
-            return new AsyncTriggerHandler<AxisEventData>(this, cancellationToken, false);
-        }
-
-        public UniTask<AxisEventData> OnMoveAsync()
-        {
-            return ((IAsyncOnMoveHandler)new AsyncTriggerHandler<AxisEventData>(this, true)).OnMoveAsync();
-        }
-
-        public UniTask<AxisEventData> OnMoveAsync(CancellationToken cancellationToken)
-        {
-            return ((IAsyncOnMoveHandler)new AsyncTriggerHandler<AxisEventData>(this, cancellationToken, true)).OnMoveAsync();
-        }
-    }
-#endif
-#endregion
-
 #region PointerClick
 #if !UNITY_2019_1_OR_NEWER || UNITASK_UGUI_SUPPORT
 
