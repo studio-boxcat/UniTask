@@ -1,7 +1,6 @@
 ﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 using System;
-using System.Linq;
 using UnityEngine;
 using Cysharp.Threading.Tasks.Internal;
 using System.Threading;
@@ -193,7 +192,7 @@ namespace Cysharp.Threading.Tasks
         static ContinuationQueue[] yielders;
         static PlayerLoopRunner[] runners;
         internal static bool IsEditorApplicationQuitting { get; private set; }
-        static PlayerLoopSystem[] InsertRunner(PlayerLoopSystem loopSystem,
+        static void InsertRunner(PlayerLoopBuilder loopSystem,
             bool injectOnFirst,
             Type loopRunnerYieldType, ContinuationQueue cq,
             Type loopRunnerType, PlayerLoopRunner runner)
@@ -234,32 +233,24 @@ namespace Cysharp.Threading.Tasks
             };
 
             // Remove items from previous initializations.
-            var source = RemoveRunner(loopSystem, loopRunnerYieldType, loopRunnerType);
-            var dest = new PlayerLoopSystem[source.Length + 2];
+            loopSystem.Remove(loopRunnerYieldType, loopRunnerType);
 
-            Array.Copy(source, 0, dest, injectOnFirst ? 2 : 0, source.Length);
             if (injectOnFirst)
             {
-                dest[0] = yieldLoop;
-                dest[1] = runnerLoop;
+                loopSystem.InsertFront(yieldLoop, runnerLoop);
             }
             else
             {
-                dest[dest.Length - 2] = yieldLoop;
-                dest[dest.Length - 1] = runnerLoop;
+                loopSystem.Add(yieldLoop, runnerLoop);
             }
-
-            return dest;
         }
 
-        static PlayerLoopSystem[] RemoveRunner(PlayerLoopSystem loopSystem, Type loopRunnerYieldType, Type loopRunnerType)
+        static void RemoveRunner(PlayerLoopBuilder loopSystem, Type loopRunnerYieldType, Type loopRunnerType)
         {
-            return loopSystem.subSystemList
-                .Where(ls => ls.type != loopRunnerYieldType && ls.type != loopRunnerType)
-                .ToArray();
+            loopSystem.Remove(loopRunnerYieldType, loopRunnerType);
         }
 
-        static PlayerLoopSystem[] InsertUniTaskSynchronizationContext(PlayerLoopSystem loopSystem)
+        static void InsertUniTaskSynchronizationContext(PlayerLoopBuilder loopSystem)
         {
             var loop = new PlayerLoopSystem
             {
@@ -268,21 +259,15 @@ namespace Cysharp.Threading.Tasks
             };
 
             // Remove items from previous initializations.
-            var source = loopSystem.subSystemList
-                .Where(ls => ls.type != typeof(UniTaskSynchronizationContext))
-                .ToArray();
+            loopSystem.Remove(typeof(UniTaskSynchronizationContext));
 
-            var dest = new System.Collections.Generic.List<PlayerLoopSystem>(source);
-
-            var index = dest.FindIndex(x => x.type.Name == "ScriptRunDelayedTasks");
+            var index = loopSystem.IndexOf(typeof(PlayerLoopType.Update.ScriptRunDelayedTasks));
             if (index == -1)
             {
-                index = dest.FindIndex(x => x.type.Name == "UniTaskLoopRunnerUpdate");
+                index = loopSystem.IndexOf(typeof(UniTaskLoopRunners.UniTaskLoopRunnerUpdate));
             }
 
-            dest.Insert(index + 1, loop);
-
-            return dest.ToArray();
+            loopSystem.Insert(index + 1, loop);
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -362,7 +347,7 @@ namespace Cysharp.Threading.Tasks
 
 #endif
 
-        private static int FindLoopSystemIndex(PlayerLoopSystem[] playerLoopList, Type systemType)
+        private static int FindLoopSystemIndex(PlayerLoopBuilder[] playerLoopList, Type systemType)
         {
             for (int i = 0; i < playerLoopList.Length; i++)
             {
@@ -375,19 +360,19 @@ namespace Cysharp.Threading.Tasks
             throw new Exception("Target PlayerLoopSystem does not found. Type:" + systemType.FullName);
         }
 
-        static void InsertLoop(PlayerLoopSystem[] copyList, InjectPlayerLoopTimings injectTimings, Type loopType, InjectPlayerLoopTimings targetTimings,
+        static void InsertLoop(PlayerLoopBuilder[] copyList, InjectPlayerLoopTimings injectTimings, Type loopType, InjectPlayerLoopTimings targetTimings,
             int index, bool injectOnFirst, Type loopRunnerYieldType, Type loopRunnerType, PlayerLoopTiming playerLoopTiming)
         {
             var i = FindLoopSystemIndex(copyList, loopType);
             if ((injectTimings & targetTimings) == targetTimings)
             {
-                copyList[i].subSystemList = InsertRunner(copyList[i], injectOnFirst,
+                InsertRunner(copyList[i], injectOnFirst,
                     loopRunnerYieldType, yielders[index] = new ContinuationQueue(playerLoopTiming),
                     loopRunnerType, runners[index] = new PlayerLoopRunner(playerLoopTiming));
             }
             else
             {
-                copyList[i].subSystemList = RemoveRunner(copyList[i], loopRunnerYieldType, loopRunnerType);
+                RemoveRunner(copyList[i], loopRunnerYieldType, loopRunnerType);
             }
         }
 
@@ -401,7 +386,7 @@ namespace Cysharp.Threading.Tasks
             runners = new PlayerLoopRunner[14];
 #endif
 
-            var copyList = playerLoop.subSystemList.ToArray();
+            var copyList = PlayerLoopBuilder.CreateSubSystemArray(playerLoop);
 
             // Initialization
             InsertLoop(copyList, injectTimings, typeof(PlayerLoopType.Initialization),
@@ -479,9 +464,9 @@ namespace Cysharp.Threading.Tasks
 
             // Insert UniTaskSynchronizationContext to Update loop
             var i = FindLoopSystemIndex(copyList, typeof(PlayerLoopType.Update));
-            copyList[i].subSystemList = InsertUniTaskSynchronizationContext(copyList[i]);
+            InsertUniTaskSynchronizationContext(copyList[i]);
 
-            playerLoop.subSystemList = copyList;
+            playerLoop.subSystemList = PlayerLoopBuilder.BuildSubSystemArray(copyList);
             PlayerLoop.SetPlayerLoop(playerLoop);
         }
 
