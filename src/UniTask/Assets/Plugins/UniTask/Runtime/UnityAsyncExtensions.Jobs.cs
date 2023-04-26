@@ -21,11 +21,7 @@ namespace Cysharp.Threading.Tasks
         {
             var handler = JobHandlePromise.Create(jobHandle, out var token);
             {
-                PlayerLoopHelper.AddAction(PlayerLoopTiming.EarlyUpdate, handler);
-                PlayerLoopHelper.AddAction(PlayerLoopTiming.PreUpdate, handler);
                 PlayerLoopHelper.AddAction(PlayerLoopTiming.Update, handler);
-                PlayerLoopHelper.AddAction(PlayerLoopTiming.PreLateUpdate, handler);
-                PlayerLoopHelper.AddAction(PlayerLoopTiming.PostLateUpdate, handler);
             }
 
             return new UniTask(handler, token).GetAwaiter();

@@ -75,40 +75,10 @@ namespace Cysharp.Threading.Tasks
             return new UniTask(NextFramePromise.Create(timing, cancellationToken, out var token), token);
         }
 
-        [Obsolete("Use WaitForEndOfFrame(MonoBehaviour) instead or UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate). Equivalent for coroutine's WaitForEndOfFrame requires MonoBehaviour(runner of Coroutine).")]
-        public static YieldAwaitable WaitForEndOfFrame()
-        {
-            return UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
-        }
-
-        [Obsolete("Use WaitForEndOfFrame(MonoBehaviour) instead or UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate). Equivalent for coroutine's WaitForEndOfFrame requires MonoBehaviour(runner of Coroutine).")]
-        public static UniTask WaitForEndOfFrame(CancellationToken cancellationToken)
-        {
-            return UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate, cancellationToken);
-        }
-
         public static UniTask WaitForEndOfFrame(MonoBehaviour coroutineRunner, CancellationToken cancellationToken = default)
         {
             var source = WaitForEndOfFramePromise.Create(coroutineRunner, cancellationToken, out var token);
             return new UniTask(source, token);
-        }
-
-        /// <summary>
-        /// Same as UniTask.Yield(PlayerLoopTiming.LastFixedUpdate).
-        /// </summary>
-        public static YieldAwaitable WaitForFixedUpdate()
-        {
-            // use LastFixedUpdate instead of FixedUpdate
-            // https://github.com/Cysharp/UniTask/issues/377
-            return UniTask.Yield(PlayerLoopTiming.LastFixedUpdate);
-        }
-
-        /// <summary>
-        /// Same as UniTask.Yield(PlayerLoopTiming.LastFixedUpdate, cancellationToken).
-        /// </summary>
-        public static UniTask WaitForFixedUpdate(CancellationToken cancellationToken)
-        {
-            return UniTask.Yield(PlayerLoopTiming.LastFixedUpdate, cancellationToken);
         }
 
         public static UniTask DelayFrame(int delayFrameCount, PlayerLoopTiming delayTiming = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken))
