@@ -25,7 +25,7 @@ namespace Cysharp.Threading.Tasks
             return ToUniTask(handle, cancellationToken: cancellationToken);
         }
 
-        public static UniTask ToUniTask(this AsyncOperationHandle handle, IProgress<float> progress = null, PlayerLoopTiming timing = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask ToUniTask(this AsyncOperationHandle handle, PlayerLoopTiming timing = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (cancellationToken.IsCancellationRequested) return UniTask.FromCanceled(cancellationToken);
 
@@ -44,7 +44,7 @@ namespace Cysharp.Threading.Tasks
                 return UniTask.CompletedTask;
             }
 
-            return new UniTask(AsyncOperationHandleConfiguredSource.Create(handle, timing, progress, cancellationToken, out var token), token);
+            return new UniTask(AsyncOperationHandleConfiguredSource.Create(handle, timing, cancellationToken, out var token), token);
         }
 
         public struct AsyncOperationHandleAwaiter : ICriticalNotifyCompletion
@@ -106,7 +106,6 @@ namespace Cysharp.Threading.Tasks
             readonly Action<AsyncOperationHandle> continuationAction;
             AsyncOperationHandle handle;
             CancellationToken cancellationToken;
-            IProgress<float> progress;
             bool completed;
 
             UniTaskCompletionSourceCore<AsyncUnit> core;
@@ -116,7 +115,7 @@ namespace Cysharp.Threading.Tasks
                 continuationAction = Continuation;
             }
 
-            public static IUniTaskSource Create(AsyncOperationHandle handle, PlayerLoopTiming timing, IProgress<float> progress, CancellationToken cancellationToken, out short token)
+            public static IUniTaskSource Create(AsyncOperationHandle handle, PlayerLoopTiming timing, CancellationToken cancellationToken, out short token)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -129,7 +128,6 @@ namespace Cysharp.Threading.Tasks
                 }
 
                 result.handle = handle;
-                result.progress = progress;
                 result.cancellationToken = cancellationToken;
                 result.completed = false;
 
@@ -204,11 +202,6 @@ namespace Cysharp.Threading.Tasks
                     return false;
                 }
 
-                if (progress != null && handle.IsValid())
-                {
-                    progress.Report(handle.PercentComplete);
-                }
-
                 return true;
             }
 
@@ -217,7 +210,6 @@ namespace Cysharp.Threading.Tasks
                 TaskTracker.RemoveTracking(this);
                 core.Reset();
                 handle = default;
-                progress = default;
                 cancellationToken = default;
                 return pool.TryPush(this);
             }
@@ -237,7 +229,7 @@ namespace Cysharp.Threading.Tasks
             return ToUniTask(handle, cancellationToken: cancellationToken);
         }
 
-        public static UniTask<T> ToUniTask<T>(this AsyncOperationHandle<T> handle, IProgress<float> progress = null, PlayerLoopTiming timing = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<T> ToUniTask<T>(this AsyncOperationHandle<T> handle, PlayerLoopTiming timing = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (cancellationToken.IsCancellationRequested) return UniTask.FromCanceled<T>(cancellationToken);
 
@@ -255,7 +247,7 @@ namespace Cysharp.Threading.Tasks
                 return UniTask.FromResult(handle.Result);
             }
 
-            return new UniTask<T>(AsyncOperationHandleConfiguredSource<T>.Create(handle, timing, progress, cancellationToken, out var token), token);
+            return new UniTask<T>(AsyncOperationHandleConfiguredSource<T>.Create(handle, timing, cancellationToken, out var token), token);
         }
 
         sealed class AsyncOperationHandleConfiguredSource<T> : IUniTaskSource<T>, IPlayerLoopItem, ITaskPoolNode<AsyncOperationHandleConfiguredSource<T>>
@@ -272,7 +264,6 @@ namespace Cysharp.Threading.Tasks
             readonly Action<AsyncOperationHandle<T>> continuationAction;
             AsyncOperationHandle<T> handle;
             CancellationToken cancellationToken;
-            IProgress<float> progress;
             bool completed;
 
             UniTaskCompletionSourceCore<T> core;
@@ -282,7 +273,7 @@ namespace Cysharp.Threading.Tasks
                 continuationAction = Continuation;
             }
 
-            public static IUniTaskSource<T> Create(AsyncOperationHandle<T> handle, PlayerLoopTiming timing, IProgress<float> progress, CancellationToken cancellationToken, out short token)
+            public static IUniTaskSource<T> Create(AsyncOperationHandle<T> handle, PlayerLoopTiming timing, CancellationToken cancellationToken, out short token)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -297,7 +288,6 @@ namespace Cysharp.Threading.Tasks
                 result.handle = handle;
                 result.cancellationToken = cancellationToken;
                 result.completed = false;
-                result.progress = progress;
 
                 TaskTracker.TrackActiveTask(result, 3);
 
@@ -375,11 +365,6 @@ namespace Cysharp.Threading.Tasks
                     return false;
                 }
 
-                if (progress != null && handle.IsValid())
-                {
-                    progress.Report(handle.PercentComplete);
-                }
-
                 return true;
             }
 
@@ -388,7 +373,6 @@ namespace Cysharp.Threading.Tasks
                 TaskTracker.RemoveTracking(this);
                 core.Reset();
                 handle = default;
-                progress = default;
                 cancellationToken = default;
                 return pool.TryPush(this);
             }
