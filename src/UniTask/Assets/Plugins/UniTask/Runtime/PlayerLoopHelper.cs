@@ -78,29 +78,6 @@ namespace Cysharp.Threading.Tasks
             Type loopRunnerYieldType, ContinuationQueue cq,
             Type loopRunnerType, PlayerLoopRunner runner)
         {
-
-#if UNITY_EDITOR
-            EditorApplication.playModeStateChanged += (state) =>
-            {
-                if (state == PlayModeStateChange.EnteredEditMode || state == PlayModeStateChange.ExitingEditMode)
-                {
-                    IsEditorApplicationQuitting = true;
-                    // run rest action before clear.
-                    if (runner != null)
-                    {
-                        runner.Run();
-                        runner.Clear();
-                    }
-                    if (cq != null)
-                    {
-                        cq.Run();
-                        cq.Clear();
-                    }
-                    IsEditorApplicationQuitting = false;
-                }
-            };
-#endif
-
             var yieldLoop = new PlayerLoopSystem
             {
                 type = loopRunnerYieldType,
