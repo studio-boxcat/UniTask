@@ -23,20 +23,13 @@ namespace Cysharp.Threading.Tasks
     {
         public struct UniTaskLoopRunnerUpdate { };
 
-        // Last
-        public struct UniTaskLoopRunnerLastPostLateUpdate { };
-
         // Yield
         public struct UniTaskLoopRunnerYieldUpdate { };
-
-        // Yield Last
-        public struct UniTaskLoopRunnerLastYieldPostLateUpdate { };
     }
 
     public enum PlayerLoopTiming
     {
         Update = 0,
-        LastPostLateUpdate = 1,
     }
 
     [Flags]
@@ -46,12 +39,10 @@ namespace Cysharp.Threading.Tasks
         /// Preset: All loops(default).
         /// </summary>
         All =
-            Update |
-            LastPostLateUpdate
+            Update
             ,
 
         Update = 0,
-        LastPostLateUpdate = 1
     }
 
     public interface IPlayerLoopItem
@@ -249,10 +240,6 @@ namespace Cysharp.Threading.Tasks
             InsertLoop(copyList, injectTimings, typeof(PlayerLoopType.Update),
                 InjectPlayerLoopTimings.Update, 0, true,
                 typeof(UniTaskLoopRunners.UniTaskLoopRunnerYieldUpdate), typeof(UniTaskLoopRunners.UniTaskLoopRunnerUpdate), PlayerLoopTiming.Update);
-
-            InsertLoop(copyList, injectTimings, typeof(PlayerLoopType.PostLateUpdate),
-                InjectPlayerLoopTimings.LastPostLateUpdate, 1, false,
-                typeof(UniTaskLoopRunners.UniTaskLoopRunnerLastYieldPostLateUpdate), typeof(UniTaskLoopRunners.UniTaskLoopRunnerLastPostLateUpdate), PlayerLoopTiming.LastPostLateUpdate);
 
             // Insert UniTaskSynchronizationContext to Update loop
             var i = FindLoopSystemIndex(copyList, typeof(PlayerLoopType.Update));

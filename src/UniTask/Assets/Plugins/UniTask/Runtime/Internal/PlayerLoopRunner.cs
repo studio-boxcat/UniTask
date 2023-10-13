@@ -79,9 +79,6 @@ namespace Cysharp.Threading.Tasks.Internal
                 case PlayerLoopTiming.Update:
                     Update();
                     break;
-                case PlayerLoopTiming.LastPostLateUpdate:
-                    LastPostLateUpdate();
-                    break;
                 default:
                     break;
             }
@@ -91,7 +88,6 @@ namespace Cysharp.Threading.Tasks.Internal
         }
 
         void Update() => RunCore();
-        void LastPostLateUpdate() => RunCore();
 
         [System.Diagnostics.DebuggerHidden]
         void RunCore()
