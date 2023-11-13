@@ -219,12 +219,7 @@ namespace Cysharp.Threading.Tasks.CompilerServices
             }
             finally
             {
-#if ENABLE_IL2CPP
-                // workaround for IL2CPP bug.
-                PlayerLoopHelper.AddContinuation(PlayerLoopTiming.LastPostLateUpdate, returnDelegate);
-#else
                 TryReturn();
-#endif
             }
         }
 
@@ -252,10 +247,6 @@ namespace Cysharp.Threading.Tasks.CompilerServices
     {
         static TaskPool<AsyncUniTask<TStateMachine, T>> pool;
 
-#if ENABLE_IL2CPP
-        readonly Action returnDelegate;  
-#endif
-
         public Action MoveNext { get; }
 
         TStateMachine stateMachine;
@@ -264,9 +255,6 @@ namespace Cysharp.Threading.Tasks.CompilerServices
         AsyncUniTask()
         {
             MoveNext = Run;
-#if ENABLE_IL2CPP
-            returnDelegate = Return;
-#endif
         }
 
         public static void SetStateMachine(ref TStateMachine stateMachine, ref IStateMachineRunnerPromise<T> runnerPromiseFieldRef)
@@ -343,12 +331,7 @@ namespace Cysharp.Threading.Tasks.CompilerServices
             }
             finally
             {
-#if ENABLE_IL2CPP
-                // workaround for IL2CPP bug.
-                PlayerLoopHelper.AddContinuation(PlayerLoopTiming.LastPostLateUpdate, returnDelegate);
-#else
                 TryReturn();
-#endif
             }
         }
 

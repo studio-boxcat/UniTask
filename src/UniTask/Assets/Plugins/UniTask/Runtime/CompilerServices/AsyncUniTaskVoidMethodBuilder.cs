@@ -41,12 +41,7 @@ namespace Cysharp.Threading.Tasks.CompilerServices
             // runner is finished, return first.
             if (runner != null)
             {
-#if ENABLE_IL2CPP
-                // workaround for IL2CPP bug.
-                PlayerLoopHelper.AddContinuation(PlayerLoopTiming.LastPostLateUpdate, runner.ReturnAction);
-#else
                 runner.Return();
-#endif
                 runner = null;
             }
 
@@ -61,12 +56,7 @@ namespace Cysharp.Threading.Tasks.CompilerServices
             // runner is finished, return.
             if (runner != null)
             {
-#if ENABLE_IL2CPP
-                // workaround for IL2CPP bug.
-                PlayerLoopHelper.AddContinuation(PlayerLoopTiming.LastPostLateUpdate, runner.ReturnAction);
-#else
                 runner.Return();
-#endif
                 runner = null;
             }
         }
