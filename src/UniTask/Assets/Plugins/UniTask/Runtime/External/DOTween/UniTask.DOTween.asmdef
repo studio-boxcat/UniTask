@@ -2,6 +2,7 @@
     "name": "UniTask.DOTween",
     "references": [
         "UniTask",
+        "DOTween",
         "DOTween.Modules"
     ],
     "includePlatforms": [],
