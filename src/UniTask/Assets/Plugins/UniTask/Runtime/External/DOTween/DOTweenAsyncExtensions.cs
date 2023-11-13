@@ -32,10 +32,6 @@ namespace Cysharp.Threading.Tasks
         {
             Kill,
             Complete,
-            Pause,
-            Play,
-            Rewind,
-            StepComplete
         }
 
         public static TweenAwaiter GetAwaiter(this Tween tween)
@@ -65,38 +61,6 @@ namespace Cysharp.Threading.Tasks
 
             if (!tween.IsActive()) return UniTask.CompletedTask;
             return new UniTask(TweenConfiguredSource.Create(tween, tweenCancelBehaviour, cancellationToken, CallbackType.Complete, out var token), token);
-        }
-
-        public static UniTask AwaitForPause(this Tween tween, TweenCancelBehaviour tweenCancelBehaviour = TweenCancelBehaviour.Kill, CancellationToken cancellationToken = default)
-        {
-            Error.ThrowArgumentNullException(tween, nameof(tween));
-
-            if (!tween.IsActive()) return UniTask.CompletedTask;
-            return new UniTask(TweenConfiguredSource.Create(tween, tweenCancelBehaviour, cancellationToken, CallbackType.Pause, out var token), token);
-        }
-
-        public static UniTask AwaitForPlay(this Tween tween, TweenCancelBehaviour tweenCancelBehaviour = TweenCancelBehaviour.Kill, CancellationToken cancellationToken = default)
-        {
-            Error.ThrowArgumentNullException(tween, nameof(tween));
-
-            if (!tween.IsActive()) return UniTask.CompletedTask;
-            return new UniTask(TweenConfiguredSource.Create(tween, tweenCancelBehaviour, cancellationToken, CallbackType.Play, out var token), token);
-        }
-
-        public static UniTask AwaitForRewind(this Tween tween, TweenCancelBehaviour tweenCancelBehaviour = TweenCancelBehaviour.Kill, CancellationToken cancellationToken = default)
-        {
-            Error.ThrowArgumentNullException(tween, nameof(tween));
-
-            if (!tween.IsActive()) return UniTask.CompletedTask;
-            return new UniTask(TweenConfiguredSource.Create(tween, tweenCancelBehaviour, cancellationToken, CallbackType.Rewind, out var token), token);
-        }
-
-        public static UniTask AwaitForStepComplete(this Tween tween, TweenCancelBehaviour tweenCancelBehaviour = TweenCancelBehaviour.Kill, CancellationToken cancellationToken = default)
-        {
-            Error.ThrowArgumentNullException(tween, nameof(tween));
-
-            if (!tween.IsActive()) return UniTask.CompletedTask;
-            return new UniTask(TweenConfiguredSource.Create(tween, tweenCancelBehaviour, cancellationToken, CallbackType.StepComplete, out var token), token);
         }
 
         public struct TweenAwaiter : ICriticalNotifyCompletion
@@ -189,24 +153,8 @@ namespace Cysharp.Threading.Tasks
                         result.originalCompleteAction = tween.onComplete;
                         tween.onComplete = result.onCompleteCallbackDelegate;
                         break;
-                    case CallbackType.Pause:
-                        result.originalCompleteAction = tween.onPause;
-                        tween.onPause = result.onCompleteCallbackDelegate;
-                        break;
-                    case CallbackType.Play:
-                        result.originalCompleteAction = tween.onPlay;
-                        tween.onPlay = result.onCompleteCallbackDelegate;
-                        break;
-                    case CallbackType.Rewind:
-                        result.originalCompleteAction = tween.onRewind;
-                        tween.onRewind = result.onCompleteCallbackDelegate;
-                        break;
-                    case CallbackType.StepComplete:
-                        result.originalCompleteAction = tween.onStepComplete;
-                        tween.onStepComplete = result.onCompleteCallbackDelegate;
-                        break;
                     default:
-                        break;
+                        throw new ArgumentOutOfRangeException(nameof(callbackType), callbackType, null);
                 }
 
                 if (result.originalCompleteAction == result.onCompleteCallbackDelegate)
@@ -374,20 +322,8 @@ namespace Cysharp.Threading.Tasks
                     case CallbackType.Complete:
                         tween.onComplete = originalCompleteAction;
                         break;
-                    case CallbackType.Pause:
-                        tween.onPause = originalCompleteAction;
-                        break;
-                    case CallbackType.Play:
-                        tween.onPlay = originalCompleteAction;
-                        break;
-                    case CallbackType.Rewind:
-                        tween.onRewind = originalCompleteAction;
-                        break;
-                    case CallbackType.StepComplete:
-                        tween.onStepComplete = originalCompleteAction;
-                        break;
                     default:
-                        break;
+                        throw new ArgumentOutOfRangeException();
                 }
             }
         }
