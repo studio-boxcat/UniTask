@@ -1,9 +1,11 @@
 ﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 using System;
+using System.Linq;
 using UnityEngine;
 using Cysharp.Threading.Tasks.Internal;
 using System.Threading;
+using UnityEngine.Assertions;
 
 #if UNITY_2019_3_OR_NEWER
 using UnityEngine.LowLevel;
@@ -19,29 +21,8 @@ using UnityEditor;
 
 namespace Cysharp.Threading.Tasks
 {
-    public static class UniTaskLoopRunners
-    {
-        public struct UniTaskLoopRunnerUpdate { };
-
-        // Yield
-        public struct UniTaskLoopRunnerYieldUpdate { };
-    }
-
     public enum PlayerLoopTiming
     {
-        Update = 0,
-    }
-
-    [Flags]
-    public enum InjectPlayerLoopTimings
-    {
-        /// <summary>
-        /// Preset: All loops(default).
-        /// </summary>
-        All =
-            Update
-            ,
-
         Update = 0,
     }
 
@@ -61,63 +42,9 @@ namespace Cysharp.Threading.Tasks
         static int mainThreadId;
         static string applicationDataPath;
         static SynchronizationContext unitySynchronizationContext;
-        static ContinuationQueue[] yielders;
-        static PlayerLoopRunner[] runners;
+        static ContinuationQueue updateYielder;
+        static PlayerLoopRunner updateRunner;
         internal static bool IsEditorApplicationQuitting { get; private set; }
-        static void InsertRunner(PlayerLoopBuilder loopSystem,
-            bool injectOnFirst,
-            Type loopRunnerYieldType, ContinuationQueue cq,
-            Type loopRunnerType, PlayerLoopRunner runner)
-        {
-            var yieldLoop = new PlayerLoopSystem
-            {
-                type = loopRunnerYieldType,
-                updateDelegate = cq.Run
-            };
-
-            var runnerLoop = new PlayerLoopSystem
-            {
-                type = loopRunnerType,
-                updateDelegate = runner.Run
-            };
-
-            // Remove items from previous initializations.
-            loopSystem.Remove(loopRunnerYieldType, loopRunnerType);
-
-            if (injectOnFirst)
-            {
-                loopSystem.InsertFront(yieldLoop, runnerLoop);
-            }
-            else
-            {
-                loopSystem.Add(yieldLoop, runnerLoop);
-            }
-        }
-
-        static void RemoveRunner(PlayerLoopBuilder loopSystem, Type loopRunnerYieldType, Type loopRunnerType)
-        {
-            loopSystem.Remove(loopRunnerYieldType, loopRunnerType);
-        }
-
-        static void InsertUniTaskSynchronizationContext(PlayerLoopBuilder loopSystem)
-        {
-            var loop = new PlayerLoopSystem
-            {
-                type = typeof(UniTaskSynchronizationContext),
-                updateDelegate = UniTaskSynchronizationContext.Run
-            };
-
-            // Remove items from previous initializations.
-            loopSystem.Remove(typeof(UniTaskSynchronizationContext));
-
-            var index = loopSystem.IndexOf(typeof(PlayerLoopType.Update.ScriptRunDelayedTasks));
-            if (index == -1)
-            {
-                index = loopSystem.IndexOf(typeof(UniTaskLoopRunners.UniTaskLoopRunnerUpdate));
-            }
-
-            loopSystem.Insert(index + 1, loop);
-        }
 
 #if UNITY_2020_1_OR_NEWER
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
@@ -140,9 +67,9 @@ namespace Cysharp.Threading.Tasks
             // otherwise, pending tasks will leak between play mode sessions.
             var domainReloadDisabled = UnityEditor.EditorSettings.enterPlayModeOptionsEnabled &&
                 UnityEditor.EditorSettings.enterPlayModeOptions.HasFlag(UnityEditor.EnterPlayModeOptions.DisableDomainReload);
-            if (!domainReloadDisabled && runners != null) return;
+            if (!domainReloadDisabled && updateRunner != null) return;
 #else
-            if (runners != null) return; // already initialized
+            if (updateRunner != null) return; // already initialized
 #endif
 
             var playerLoop =
@@ -179,101 +106,106 @@ namespace Cysharp.Threading.Tasks
             // EditorApplication.QueuePlayerLoopUpdate causes performance issue, don't call directly.
             // EditorApplication.QueuePlayerLoopUpdate();
 
-            if (yielders != null)
-            {
-                foreach (var item in yielders)
-                {
-                    if (item != null) item.Run();
-                }
-            }
-
-            if (runners != null)
-            {
-                foreach (var item in runners)
-                {
-                    if (item != null) item.Run();
-                }
-            }
+            updateYielder?.Run();
+            updateRunner?.Run();
 
             UniTaskSynchronizationContext.Run();
         }
 
 #endif
 
-        private static int FindLoopSystemIndex(PlayerLoopBuilder[] playerLoopList, Type systemType)
+        static void Initialize(ref PlayerLoopSystem playerLoop)
         {
-            for (int i = 0; i < playerLoopList.Length; i++)
+            // Set yielders and runners.
+            var cq = new ContinuationQueue(PlayerLoopTiming.Update);
+            var runner = new PlayerLoopRunner(PlayerLoopTiming.Update);
+            updateYielder = cq;
+            updateRunner = runner;
+
+            // Create loops.
+            var yieldLoop = new PlayerLoopSystem { type = typeof(ContinuationQueue), updateDelegate = cq.Run };
+            var runnerLoop = new PlayerLoopSystem { type = typeof(PlayerLoopRunner), updateDelegate = runner.Run };
+            var syncContextLoop = new PlayerLoopSystem { type = typeof(UniTaskSynchronizationContext), updateDelegate = UniTaskSynchronizationContext.Run };
+
+            // Find update loop.
+            var subSystemList = playerLoop.subSystemList;
+            var updateSystemIndex = FindIndex(subSystemList, typeof(PlayerLoopType.Update));
+            Assert.AreNotEqual(-1, updateSystemIndex, "Update Loop not found.");
+            ref var updateSystem = ref subSystemList[updateSystemIndex];
+
+            // Insert loop into subSystem.
+            var orgLoops = updateSystem.subSystemList;
+            var orgYielderIndex = FindIndex(orgLoops, typeof(ContinuationQueue));
+            if (orgYielderIndex != -1) // When already initialized, replace it.
             {
-                if (playerLoopList[i].type == systemType)
+                var orgRunnerIndex = FindIndex(orgLoops, typeof(PlayerLoopRunner));
+                var orgSyncContextIndex = FindIndex(orgLoops, typeof(UniTaskSynchronizationContext));
+                Assert.AreNotEqual(-1, orgRunnerIndex, "PlayerLoopRunner not found.");
+                Assert.AreNotEqual(-1, orgSyncContextIndex, "UniTaskSynchronizationContext not found.");
+                orgLoops[orgYielderIndex] = yieldLoop;
+                orgLoops[orgRunnerIndex] = runnerLoop;
+                orgLoops[orgSyncContextIndex] = syncContextLoop;
+            }
+            else // When not initialized, insert it.
+            {
+                Assert.IsFalse(FindIndex(orgLoops, typeof(ContinuationQueue)) != -1, "ContinuationQueue already exists.");
+                Assert.IsFalse(FindIndex(orgLoops, typeof(PlayerLoopRunner)) != -1, "PlayerLoopRunner already exists.");
+                Assert.IsFalse(FindIndex(orgLoops, typeof(UniTaskSynchronizationContext)) != -1, "UniTaskSynchronizationContext already exists.");
+
+                var orgCount = orgLoops.Length;
+                var newLoops = new PlayerLoopSystem[orgCount + 3];
+                newLoops[0] = new PlayerLoopSystem { type = typeof(ContinuationQueue), updateDelegate = cq.Run };
+                newLoops[1] = new PlayerLoopSystem { type = typeof(PlayerLoopRunner), updateDelegate = runner.Run };
+
+                // Insert UniTaskSynchronizationContext to Update loop
+                var i = 0;
+                var j = 2;
+                for (; i < orgCount; i++)
                 {
-                    return i;
+                    if (orgLoops[i].type == typeof(PlayerLoopType.Update.ScriptRunDelayedTasks))
+                        newLoops[j++] = new PlayerLoopSystem { type = typeof(UniTaskSynchronizationContext), updateDelegate = UniTaskSynchronizationContext.Run };
+                    newLoops[j++] = orgLoops[i];
                 }
+                Assert.AreEqual(orgCount + 3, j);
+
+                // Update subSystem.
+                updateSystem.subSystemList = newLoops;
             }
 
-            throw new Exception("Target PlayerLoopSystem does not found. Type:" + systemType.FullName);
-        }
-
-        static void InsertLoop(PlayerLoopBuilder[] copyList, InjectPlayerLoopTimings injectTimings, Type loopType, InjectPlayerLoopTimings targetTimings,
-            int index, bool injectOnFirst, Type loopRunnerYieldType, Type loopRunnerType, PlayerLoopTiming playerLoopTiming)
-        {
-            var i = FindLoopSystemIndex(copyList, loopType);
-            if ((injectTimings & targetTimings) == targetTimings)
-            {
-                InsertRunner(copyList[i], injectOnFirst,
-                    loopRunnerYieldType, yielders[index] = new ContinuationQueue(playerLoopTiming),
-                    loopRunnerType, runners[index] = new PlayerLoopRunner(playerLoopTiming));
-            }
-            else
-            {
-                RemoveRunner(copyList[i], loopRunnerYieldType, loopRunnerType);
-            }
-        }
-
-        public static void Initialize(ref PlayerLoopSystem playerLoop, InjectPlayerLoopTimings injectTimings = InjectPlayerLoopTimings.All)
-        {
-            yielders = new ContinuationQueue[2];
-            runners = new PlayerLoopRunner[2];
-
-            var copyList = PlayerLoopBuilder.CreateSubSystemArray(playerLoop);
-
-            // Update
-            InsertLoop(copyList, injectTimings, typeof(PlayerLoopType.Update),
-                InjectPlayerLoopTimings.Update, 0, true,
-                typeof(UniTaskLoopRunners.UniTaskLoopRunnerYieldUpdate), typeof(UniTaskLoopRunners.UniTaskLoopRunnerUpdate), PlayerLoopTiming.Update);
-
-            // Insert UniTaskSynchronizationContext to Update loop
-            var i = FindLoopSystemIndex(copyList, typeof(PlayerLoopType.Update));
-            InsertUniTaskSynchronizationContext(copyList[i]);
-
-            playerLoop.subSystemList = PlayerLoopBuilder.BuildSubSystemArray(copyList);
+            // Set new subSystem.
+            Assert.IsTrue(playerLoop.subSystemList[updateSystemIndex].subSystemList
+                .Any(x => x.type == typeof(ContinuationQueue)), "ContinuationQueue not found.");
+            Assert.IsTrue(playerLoop.subSystemList[updateSystemIndex].subSystemList
+                .Any(x => x.type == typeof(PlayerLoopRunner)), "PlayerLoopRunner not found.");
+            Assert.IsTrue(playerLoop.subSystemList[updateSystemIndex].subSystemList
+                .Any(x => x.type == typeof(UniTaskSynchronizationContext)), "UniTaskSynchronizationContext not found.");
             PlayerLoop.SetPlayerLoop(playerLoop);
+            return;
+
+            static int FindIndex(PlayerLoopSystem[] systems, Type type)
+            {
+                for (var i = 0; i < systems.Length; i++)
+                {
+                    if (systems[i].type == type)
+                        return i;
+                }
+                return -1;
+            }
         }
 
         public static void AddAction(PlayerLoopTiming timing, IPlayerLoopItem action)
         {
-            var runner = runners[(int)timing];
-            if (runner == null)
-            {
-                ThrowInvalidLoopTiming(timing);
-            }
-            runner.AddAction(action);
-        }
-
-        static void ThrowInvalidLoopTiming(PlayerLoopTiming playerLoopTiming)
-        {
-            throw new InvalidOperationException("Target playerLoopTiming is not injected. Please check PlayerLoopHelper.Initialize. PlayerLoopTiming:" + playerLoopTiming);
+            Assert.AreEqual(PlayerLoopTiming.Update, timing, "Only Update timing is supported.");
+            Assert.IsNotNull(updateRunner, "UniTask.PlayerLoopHelper is not initialized.");
+            updateRunner.AddAction(action);
         }
 
         public static void AddContinuation(PlayerLoopTiming timing, Action continuation)
         {
-            var q = yielders[(int)timing];
-            if (q == null)
-            {
-                ThrowInvalidLoopTiming(timing);
-            }
-            q.Enqueue(continuation);
+            Assert.AreEqual(PlayerLoopTiming.Update, timing, "Only Update timing is supported.");
+            Assert.IsNotNull(updateYielder, "UniTask.PlayerLoopHelper is not initialized.");
+            updateYielder.Enqueue(continuation);
         }
-
     }
 }
 
