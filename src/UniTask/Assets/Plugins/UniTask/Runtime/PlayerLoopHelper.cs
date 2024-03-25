@@ -6,14 +6,8 @@ using UnityEngine;
 using Cysharp.Threading.Tasks.Internal;
 using System.Threading;
 using UnityEngine.Assertions;
-
-#if UNITY_2019_3_OR_NEWER
 using UnityEngine.LowLevel;
 using PlayerLoopType = UnityEngine.PlayerLoop;
-#else
-using UnityEngine.Experimental.LowLevel;
-using PlayerLoopType = UnityEngine.Experimental.PlayerLoop;
-#endif
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -84,7 +78,6 @@ namespace Cysharp.Threading.Tasks
 
 
 #if UNITY_EDITOR
-
         [InitializeOnLoadMethod]
         static void InitOnEditor()
         {
@@ -108,8 +101,6 @@ namespace Cysharp.Threading.Tasks
 
             updateYielder?.Run();
             updateRunner?.Run();
-
-            UniTaskSynchronizationContext.Run();
         }
 
 #endif
@@ -125,7 +116,6 @@ namespace Cysharp.Threading.Tasks
             // Create loops.
             var yieldLoop = new PlayerLoopSystem { type = typeof(ContinuationQueue), updateDelegate = cq.Run };
             var runnerLoop = new PlayerLoopSystem { type = typeof(PlayerLoopRunner), updateDelegate = runner.Run };
-            var syncContextLoop = new PlayerLoopSystem { type = typeof(UniTaskSynchronizationContext), updateDelegate = UniTaskSynchronizationContext.Run };
 
             // Find update loop.
             var subSystemList = playerLoop.subSystemList;
@@ -139,34 +129,20 @@ namespace Cysharp.Threading.Tasks
             if (orgYielderIndex != -1) // When already initialized, replace it.
             {
                 var orgRunnerIndex = FindIndex(orgLoops, typeof(PlayerLoopRunner));
-                var orgSyncContextIndex = FindIndex(orgLoops, typeof(UniTaskSynchronizationContext));
                 Assert.AreNotEqual(-1, orgRunnerIndex, "PlayerLoopRunner not found.");
-                Assert.AreNotEqual(-1, orgSyncContextIndex, "UniTaskSynchronizationContext not found.");
                 orgLoops[orgYielderIndex] = yieldLoop;
                 orgLoops[orgRunnerIndex] = runnerLoop;
-                orgLoops[orgSyncContextIndex] = syncContextLoop;
             }
             else // When not initialized, insert it.
             {
                 Assert.IsFalse(FindIndex(orgLoops, typeof(ContinuationQueue)) != -1, "ContinuationQueue already exists.");
                 Assert.IsFalse(FindIndex(orgLoops, typeof(PlayerLoopRunner)) != -1, "PlayerLoopRunner already exists.");
-                Assert.IsFalse(FindIndex(orgLoops, typeof(UniTaskSynchronizationContext)) != -1, "UniTaskSynchronizationContext already exists.");
 
                 var orgCount = orgLoops.Length;
-                var newLoops = new PlayerLoopSystem[orgCount + 3];
+                var newLoops = new PlayerLoopSystem[orgCount + 2];
                 newLoops[0] = new PlayerLoopSystem { type = typeof(ContinuationQueue), updateDelegate = cq.Run };
                 newLoops[1] = new PlayerLoopSystem { type = typeof(PlayerLoopRunner), updateDelegate = runner.Run };
-
-                // Insert UniTaskSynchronizationContext to Update loop
-                var i = 0;
-                var j = 2;
-                for (; i < orgCount; i++)
-                {
-                    if (orgLoops[i].type == typeof(PlayerLoopType.Update.ScriptRunDelayedTasks))
-                        newLoops[j++] = new PlayerLoopSystem { type = typeof(UniTaskSynchronizationContext), updateDelegate = UniTaskSynchronizationContext.Run };
-                    newLoops[j++] = orgLoops[i];
-                }
-                Assert.AreEqual(orgCount + 3, j);
+                Array.Copy(orgLoops, 0, newLoops, 2, orgCount);
 
                 // Update subSystem.
                 updateSystem.subSystemList = newLoops;
@@ -177,8 +153,6 @@ namespace Cysharp.Threading.Tasks
                 .Any(x => x.type == typeof(ContinuationQueue)), "ContinuationQueue not found.");
             Assert.IsTrue(playerLoop.subSystemList[updateSystemIndex].subSystemList
                 .Any(x => x.type == typeof(PlayerLoopRunner)), "PlayerLoopRunner not found.");
-            Assert.IsTrue(playerLoop.subSystemList[updateSystemIndex].subSystemList
-                .Any(x => x.type == typeof(UniTaskSynchronizationContext)), "UniTaskSynchronizationContext not found.");
             PlayerLoop.SetPlayerLoop(playerLoop);
             return;
 
