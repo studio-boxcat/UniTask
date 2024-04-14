@@ -47,6 +47,8 @@ namespace Cysharp.Threading.Tasks
 #endif
         static void Init()
         {
+            L.I("[UniTask] PlayerLoopHelper.Init()");
+
             // capture default(unity) sync-context.
             unitySynchronizationContext = SynchronizationContext.Current;
             mainThreadId = Thread.CurrentThread.ManagedThreadId;
