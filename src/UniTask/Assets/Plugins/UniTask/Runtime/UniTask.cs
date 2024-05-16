@@ -69,24 +69,6 @@ namespace Cysharp.Threading.Tasks
             return new UniTask<bool>(new IsCanceledSource(source), token);
         }
 
-#if !UNITY_2018_3_OR_NEWER
-
-        public static implicit operator System.Threading.Tasks.ValueTask(in UniTask self)
-        {
-            if (self.source == null)
-            {
-                return default;
-            }
-
-#if NETSTANDARD2_0
-            return self.AsValueTask();
-#else
-            return new System.Threading.Tasks.ValueTask(self.source, self.token);
-#endif
-        }
-
-#endif
-
         public override string ToString()
         {
             if (source == null) return "()";
@@ -105,60 +87,6 @@ namespace Cysharp.Threading.Tasks
             else
             {
                 return new UniTask(new MemoizeSource(source), token);
-            }
-        }
-
-        public UniTask<AsyncUnit> AsAsyncUnitUniTask()
-        {
-            if (this.source == null) return CompletedTasks.AsyncUnit;
-
-            var status = this.source.GetStatus(this.token);
-            if (status.IsCompletedSuccessfully())
-            {
-                this.source.GetResult(this.token);
-                return CompletedTasks.AsyncUnit;
-            }
-            else if(this.source is IUniTaskSource<AsyncUnit> asyncUnitSource)
-            {
-                return new UniTask<AsyncUnit>(asyncUnitSource, this.token);
-            }
-
-            return new UniTask<AsyncUnit>(new AsyncUnitSource(this.source), this.token);
-        }
-
-        sealed class AsyncUnitSource : IUniTaskSource<AsyncUnit>
-        {
-            readonly IUniTaskSource source;
-
-            public AsyncUnitSource(IUniTaskSource source)
-            {
-                this.source = source;
-            }
-
-            public AsyncUnit GetResult(short token)
-            {
-                source.GetResult(token);
-                return AsyncUnit.Default;
-            }
-
-            public UniTaskStatus GetStatus(short token)
-            {
-                return source.GetStatus(token);
-            }
-
-            public void OnCompleted(Action<object> continuation, object state, short token)
-            {
-                source.OnCompleted(continuation, state, token);
-            }
-
-            public UniTaskStatus UnsafeGetStatus()
-            {
-                return source.UnsafeGetStatus();
-            }
-
-            void IUniTaskSource.GetResult(short token)
-            {
-                GetResult(token);
             }
         }
 
@@ -439,24 +367,6 @@ namespace Cysharp.Threading.Tasks
         {
             return self.AsUniTask();
         }
-
-#if !UNITY_2018_3_OR_NEWER
-
-        public static implicit operator System.Threading.Tasks.ValueTask<T>(in UniTask<T> self)
-        {
-            if (self.source == null)
-            {
-                return new System.Threading.Tasks.ValueTask<T>(self.result);
-            }
-
-#if NETSTANDARD2_0
-            return self.AsValueTask();
-#else
-            return new System.Threading.Tasks.ValueTask<T>(self.source, self.token);
-#endif
-        }
-
-#endif
 
         /// <summary>
         /// returns (bool IsCanceled, T Result) instead of throws OperationCanceledException.
