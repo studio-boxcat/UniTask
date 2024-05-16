@@ -32,6 +32,13 @@ namespace Cysharp.Threading.Tasks
 
     public static class UniTaskStatusExtensions
     {
+        /// <summary>status == Pending.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsPending(this UniTaskStatus status)
+        {
+            return status is UniTaskStatus.Pending;
+        }
+
         /// <summary>status != Pending.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsCompleted(this UniTaskStatus status)
