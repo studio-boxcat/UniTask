@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -14,7 +13,7 @@ namespace Cysharp.Threading.Tasks
         internal static int MaxPoolSize;
 
         // avoid to use ConcurrentDictionary for safety of WebGL build.
-        static Dictionary<Type, Func<int>> sizes = new Dictionary<Type, Func<int>>();
+        static Dictionary<Type, Func<int>> sizes = new();
 
         static TaskPool()
         {
@@ -33,22 +32,6 @@ namespace Cysharp.Threading.Tasks
             catch { }
 
             MaxPoolSize = int.MaxValue;
-        }
-
-        public static void SetMaxPoolSize(int maxPoolSize)
-        {
-            MaxPoolSize = maxPoolSize;
-        }
-
-        public static IEnumerable<(Type, int)> GetCacheSizeInfo()
-        {
-            lock (sizes)
-            {
-                foreach (var item in sizes)
-                {
-                    yield return (item.Key, item.Value());
-                }
-            }
         }
 
         public static void RegisterSizeGetter(Type type, Func<int> getSize)

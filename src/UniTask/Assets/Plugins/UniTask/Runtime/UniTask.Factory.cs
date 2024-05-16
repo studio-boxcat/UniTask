@@ -230,7 +230,7 @@ namespace Cysharp.Threading.Tasks
             {
                 if (!calledGet)
                 {
-                    UniTaskScheduler.PublishUnobservedTaskException(exception.SourceException);
+                    L.E(exception.SourceException);
                 }
             }
         }
@@ -285,7 +285,7 @@ namespace Cysharp.Threading.Tasks
             {
                 if (!calledGet)
                 {
-                    UniTaskScheduler.PublishUnobservedTaskException(exception.SourceException);
+                    L.E(exception.SourceException);
                 }
             }
         }

@@ -63,7 +63,7 @@ namespace Cysharp.Threading.Tasks
         {
             if (!calledGet)
             {
-                UniTaskScheduler.PublishUnobservedTaskException(exception.SourceException);
+                L.E(exception.SourceException);
             }
         }
     }
@@ -106,11 +106,11 @@ namespace Cysharp.Threading.Tasks
                 {
                     if (error is OperationCanceledException oc)
                     {
-                        UniTaskScheduler.PublishUnobservedTaskException(oc);
+                        L.E(oc);
                     }
                     else if (error is ExceptionHolder e)
                     {
-                        UniTaskScheduler.PublishUnobservedTaskException(e.GetException().SourceException);
+                        L.E(e.GetException().SourceException);
                     }
                 }
                 catch
@@ -722,7 +722,7 @@ namespace Cysharp.Threading.Tasks
                         }
                         catch (Exception ex)
                         {
-                            UniTaskScheduler.PublishUnobservedTaskException(ex);
+                            L.E(ex);
                         }
                     }
 
@@ -736,7 +736,7 @@ namespace Cysharp.Threading.Tasks
                             }
                             catch (Exception ex)
                             {
-                                UniTaskScheduler.PublishUnobservedTaskException(ex);
+                                L.E(ex);
                             }
                         }
                     }
@@ -913,7 +913,7 @@ namespace Cysharp.Threading.Tasks
                         }
                         catch (Exception ex)
                         {
-                            UniTaskScheduler.PublishUnobservedTaskException(ex);
+                            L.E(ex);
                         }
                     }
 
@@ -927,7 +927,7 @@ namespace Cysharp.Threading.Tasks
                             }
                             catch (Exception ex)
                             {
-                                UniTaskScheduler.PublishUnobservedTaskException(ex);
+                                L.E(ex);
                             }
                         }
                     }

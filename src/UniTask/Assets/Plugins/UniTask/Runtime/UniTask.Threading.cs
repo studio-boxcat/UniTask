@@ -10,8 +10,6 @@ namespace Cysharp.Threading.Tasks
 {
     public partial struct UniTask
     {
-#if UNITY_2018_3_OR_NEWER
-
         /// <summary>
         /// If running on mainthread, do nothing. Otherwise, same as UniTask.Yield(PlayerLoopTiming.Update).
         /// </summary>
@@ -52,8 +50,6 @@ namespace Cysharp.Threading.Tasks
             PlayerLoopHelper.AddContinuation(timing, action);
         }
 
-#endif
-
         public static SwitchToThreadPoolAwaitable SwitchToThreadPool()
         {
             return new SwitchToThreadPoolAwaitable();
@@ -83,8 +79,6 @@ namespace Cysharp.Threading.Tasks
             return new ReturnToSynchronizationContext(SynchronizationContext.Current, dontPostWhenSameContext, cancellationToken);
         }
     }
-
-#if UNITY_2018_3_OR_NEWER
 
     public struct SwitchToMainThreadAwaitable
     {
@@ -185,8 +179,6 @@ namespace Cysharp.Threading.Tasks
         }
     }
 
-#endif
-
     public struct SwitchToThreadPoolAwaitable
     {
         public Awaiter GetAwaiter() => new Awaiter();
@@ -205,11 +197,7 @@ namespace Cysharp.Threading.Tasks
 
             public void UnsafeOnCompleted(Action continuation)
             {
-#if NETCOREAPP3_1
-                ThreadPool.UnsafeQueueUserWorkItem(ThreadPoolWorkItem.Create(continuation), false);
-#else
                 ThreadPool.UnsafeQueueUserWorkItem(switchToCallback, continuation);
-#endif
             }
 
             static void Callback(object state)
@@ -218,48 +206,6 @@ namespace Cysharp.Threading.Tasks
                 continuation();
             }
         }
-
-#if NETCOREAPP3_1
-
-        sealed class ThreadPoolWorkItem : IThreadPoolWorkItem, ITaskPoolNode<ThreadPoolWorkItem>
-        {
-            static TaskPool<ThreadPoolWorkItem> pool;
-            ThreadPoolWorkItem nextNode;
-            public ref ThreadPoolWorkItem NextNode => ref nextNode;
-
-            static ThreadPoolWorkItem()
-            {
-                TaskPool.RegisterSizeGetter(typeof(ThreadPoolWorkItem), () => pool.Size);
-            }
-
-            Action continuation;
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ThreadPoolWorkItem Create(Action continuation)
-            {
-                if (!pool.TryPop(out var item))
-                {
-                    item = new ThreadPoolWorkItem();
-                }
-
-                item.continuation = continuation;
-                return item;
-            }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Execute()
-            {
-                var call = continuation;
-                continuation = null;
-                if (call != null)
-                {
-                    pool.TryPush(this);
-                    call.Invoke();
-                }
-            }
-        }
-
-#endif
     }
 
     public struct SwitchToTaskPoolAwaitable

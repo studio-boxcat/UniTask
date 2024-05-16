@@ -45,7 +45,7 @@ namespace Cysharp.Threading.Tasks.CompilerServices
                 runner = null;
             }
 
-            UniTaskScheduler.PublishUnobservedTaskException(exception);
+            L.E(exception);
         }
 
         // 4. SetResult

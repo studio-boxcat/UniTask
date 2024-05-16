@@ -27,7 +27,6 @@ namespace Cysharp.Threading.Tasks
 
     public static class PlayerLoopHelper
     {
-        public static SynchronizationContext UnitySynchronizationContext => unitySynchronizationContext;
         public static int MainThreadId => mainThreadId;
         internal static string ApplicationDataPath => applicationDataPath;
 
@@ -35,22 +34,16 @@ namespace Cysharp.Threading.Tasks
 
         static int mainThreadId;
         static string applicationDataPath;
-        static SynchronizationContext unitySynchronizationContext;
         static ContinuationQueue updateYielder;
         static PlayerLoopRunner updateRunner;
         internal static bool IsEditorApplicationQuitting { get; private set; }
 
-#if UNITY_2020_1_OR_NEWER
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-#else
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-#endif
         static void Init()
         {
             L.I("[UniTask] PlayerLoopHelper.Init()");
 
             // capture default(unity) sync-context.
-            unitySynchronizationContext = SynchronizationContext.Current;
             mainThreadId = Thread.CurrentThread.ManagedThreadId;
             try
             {
@@ -58,23 +51,17 @@ namespace Cysharp.Threading.Tasks
             }
             catch { }
 
-#if UNITY_EDITOR && UNITY_2019_3_OR_NEWER
+#if UNITY_EDITOR
             // When domain reload is disabled, re-initialization is required when entering play mode; 
             // otherwise, pending tasks will leak between play mode sessions.
-            var domainReloadDisabled = UnityEditor.EditorSettings.enterPlayModeOptionsEnabled &&
-                UnityEditor.EditorSettings.enterPlayModeOptions.HasFlag(UnityEditor.EnterPlayModeOptions.DisableDomainReload);
+            var domainReloadDisabled = EditorSettings.enterPlayModeOptionsEnabled &&
+                EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableDomainReload);
             if (!domainReloadDisabled && updateRunner != null) return;
 #else
             if (updateRunner != null) return; // already initialized
 #endif
 
-            var playerLoop =
-#if UNITY_2019_3_OR_NEWER
-                PlayerLoop.GetCurrentPlayerLoop();
-#else
-                PlayerLoop.GetDefaultPlayerLoop();
-#endif
-
+            var playerLoop = PlayerLoop.GetCurrentPlayerLoop();
             Initialize(ref playerLoop);
         }
 
@@ -104,7 +91,6 @@ namespace Cysharp.Threading.Tasks
             updateYielder?.Run();
             updateRunner?.Run();
         }
-
 #endif
 
         static void Initialize(ref PlayerLoopSystem playerLoop)

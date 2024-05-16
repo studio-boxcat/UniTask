@@ -54,7 +54,7 @@ namespace Cysharp.Threading.Tasks
             }
             catch (Exception ex)
             {
-                UniTaskScheduler.PublishUnobservedTaskException(ex);
+                L.E(ex);
             }
             cts.Cancel();
             cts.Dispose();

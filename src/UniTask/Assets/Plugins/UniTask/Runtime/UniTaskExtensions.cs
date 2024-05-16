@@ -558,7 +558,7 @@ namespace Cysharp.Threading.Tasks
                 }
                 catch (Exception ex)
                 {
-                    UniTaskScheduler.PublishUnobservedTaskException(ex);
+                    L.E(ex);
                 }
             }
             else
@@ -573,7 +573,7 @@ namespace Cysharp.Threading.Tasks
                         }
                         catch (Exception ex)
                         {
-                            UniTaskScheduler.PublishUnobservedTaskException(ex);
+                            L.E(ex);
                         }
                     }
                 }, StateTuple.Create(awaiter));
@@ -612,7 +612,7 @@ namespace Cysharp.Threading.Tasks
                 }
                 catch (Exception ex2)
                 {
-                    UniTaskScheduler.PublishUnobservedTaskException(ex2);
+                    L.E(ex2);
                 }
             }
         }
@@ -628,7 +628,7 @@ namespace Cysharp.Threading.Tasks
                 }
                 catch (Exception ex)
                 {
-                    UniTaskScheduler.PublishUnobservedTaskException(ex);
+                    L.E(ex);
                 }
             }
             else
@@ -643,7 +643,7 @@ namespace Cysharp.Threading.Tasks
                         }
                         catch (Exception ex)
                         {
-                            UniTaskScheduler.PublishUnobservedTaskException(ex);
+                            L.E(ex);
                         }
                     }
                 }, StateTuple.Create(awaiter));
@@ -682,7 +682,7 @@ namespace Cysharp.Threading.Tasks
                 }
                 catch (Exception ex2)
                 {
-                    UniTaskScheduler.PublishUnobservedTaskException(ex2);
+                    L.E(ex2);
                 }
             }
         }
