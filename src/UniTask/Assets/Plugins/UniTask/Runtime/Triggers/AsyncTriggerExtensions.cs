@@ -38,16 +38,6 @@ namespace Cysharp.Threading.Tasks.Triggers
         {
             return component.GetAsyncStartTrigger().StartAsync();
         }
-
-        public static UniTask AwakeAsync(this GameObject gameObject)
-        {
-            return gameObject.GetAsyncAwakeTrigger().AwakeAsync();
-        }
-
-        public static UniTask AwakeAsync(this Component component)
-        {
-            return component.GetAsyncAwakeTrigger().AwakeAsync();
-        }
     }
 }
 

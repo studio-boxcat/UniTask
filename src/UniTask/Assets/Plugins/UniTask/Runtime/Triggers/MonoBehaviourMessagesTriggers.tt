@@ -12,7 +12,6 @@
         ("Update", "Update", "AsyncUnit", null, empty),
 
         ("RectTransformDimensionsChange", "OnRectTransformDimensionsChange", "AsyncUnit", null, empty),
-        ("RectTransformRemoved", "OnRectTransformRemoved", "AsyncUnit", null, empty),
         ("BeforeTransformParentChanged", "OnBeforeTransformParentChanged", "AsyncUnit", null, empty),
         ("TransformParentChanged", "OnTransformParentChanged", "AsyncUnit", null, empty),
         ("TransformChildrenChanged", "OnTransformChildrenChanged", "AsyncUnit", null, empty),
@@ -28,9 +27,6 @@
         ("PointerEnter", "OnPointerEnter", "PointerEventData", "IPointerEnterHandler", new []{ ("PointerEventData", "eventData") }),
         ("PointerExit", "OnPointerExit", "PointerEventData", "IPointerExitHandler", new []{ ("PointerEventData", "eventData") }),
         ("PointerUp", "OnPointerUp", "PointerEventData", "IPointerUpHandler", new []{ ("PointerEventData", "eventData") }),
-
-        // Oneshot
-        // Awake, Start, Destroy
     };
 
     triggers = triggers.OrderBy(x => x.handlerInterface != null).ThenBy(x => x.handlerInterface != null ? x.handlerInterface : x.methodName).ToArray();

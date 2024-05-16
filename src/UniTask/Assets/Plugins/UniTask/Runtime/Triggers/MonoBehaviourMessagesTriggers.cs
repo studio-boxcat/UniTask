@@ -244,65 +244,6 @@ namespace Cysharp.Threading.Tasks.Triggers
     }
 #endregion
 
-#region RectTransformRemoved
-
-    public interface IAsyncOnRectTransformRemovedHandler
-    {
-        UniTask OnRectTransformRemovedAsync();
-    }
-
-    public partial class AsyncTriggerHandler<T> : IAsyncOnRectTransformRemovedHandler
-    {
-        UniTask IAsyncOnRectTransformRemovedHandler.OnRectTransformRemovedAsync()
-        {
-            core.Reset();
-            return new UniTask((IUniTaskSource)(object)this, core.Version);
-        }
-    }
-
-    public static partial class AsyncTriggerExtensions
-    {
-        public static AsyncRectTransformRemovedTrigger GetAsyncRectTransformRemovedTrigger(this GameObject gameObject)
-        {
-            return GetOrAddComponent<AsyncRectTransformRemovedTrigger>(gameObject);
-        }
-        
-        public static AsyncRectTransformRemovedTrigger GetAsyncRectTransformRemovedTrigger(this Component component)
-        {
-            return component.gameObject.GetAsyncRectTransformRemovedTrigger();
-        }
-    }
-
-    [DisallowMultipleComponent]
-    public sealed class AsyncRectTransformRemovedTrigger : AsyncTriggerBase<AsyncUnit>
-    {
-        void OnRectTransformRemoved()
-        {
-            RaiseEvent(AsyncUnit.Default);
-        }
-
-        public IAsyncOnRectTransformRemovedHandler GetOnRectTransformRemovedAsyncHandler()
-        {
-            return new AsyncTriggerHandler<AsyncUnit>(this, false);
-        }
-
-        public IAsyncOnRectTransformRemovedHandler GetOnRectTransformRemovedAsyncHandler(CancellationToken cancellationToken)
-        {
-            return new AsyncTriggerHandler<AsyncUnit>(this, cancellationToken, false);
-        }
-
-        public UniTask OnRectTransformRemovedAsync()
-        {
-            return ((IAsyncOnRectTransformRemovedHandler)new AsyncTriggerHandler<AsyncUnit>(this, true)).OnRectTransformRemovedAsync();
-        }
-
-        public UniTask OnRectTransformRemovedAsync(CancellationToken cancellationToken)
-        {
-            return ((IAsyncOnRectTransformRemovedHandler)new AsyncTriggerHandler<AsyncUnit>(this, cancellationToken, true)).OnRectTransformRemovedAsync();
-        }
-    }
-#endregion
-
 #region TransformChildrenChanged
 
     public interface IAsyncOnTransformChildrenChangedHandler
