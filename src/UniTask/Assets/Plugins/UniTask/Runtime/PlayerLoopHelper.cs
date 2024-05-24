@@ -15,11 +15,6 @@ using UnityEditor;
 
 namespace Cysharp.Threading.Tasks
 {
-    public enum PlayerLoopTiming
-    {
-        Update = 0,
-    }
-
     public interface IPlayerLoopItem
     {
         bool MoveNext();
@@ -38,7 +33,7 @@ namespace Cysharp.Threading.Tasks
         static PlayerLoopRunner updateRunner;
         internal static bool IsEditorApplicationQuitting { get; private set; }
 
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         static void Init()
         {
             L.I("[UniTask] PlayerLoopHelper.Init()");
@@ -55,7 +50,7 @@ namespace Cysharp.Threading.Tasks
             // When domain reload is disabled, re-initialization is required when entering play mode; 
             // otherwise, pending tasks will leak between play mode sessions.
             var domainReloadDisabled = EditorSettings.enterPlayModeOptionsEnabled &&
-                EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableDomainReload);
+                                       EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableDomainReload);
             if (!domainReloadDisabled && updateRunner != null) return;
 #else
             if (updateRunner != null) return; // already initialized
@@ -96,8 +91,8 @@ namespace Cysharp.Threading.Tasks
         static void Initialize(ref PlayerLoopSystem playerLoop)
         {
             // Set yielders and runners.
-            var cq = new ContinuationQueue(PlayerLoopTiming.Update);
-            var runner = new PlayerLoopRunner(PlayerLoopTiming.Update);
+            var cq = new ContinuationQueue();
+            var runner = new PlayerLoopRunner();
             updateYielder = cq;
             updateRunner = runner;
 
@@ -155,19 +150,16 @@ namespace Cysharp.Threading.Tasks
             }
         }
 
-        public static void AddAction(PlayerLoopTiming timing, IPlayerLoopItem action)
+        public static void AddAction(IPlayerLoopItem action)
         {
-            Assert.AreEqual(PlayerLoopTiming.Update, timing, "Only Update timing is supported.");
             Assert.IsNotNull(updateRunner, "UniTask.PlayerLoopHelper is not initialized.");
             updateRunner.AddAction(action);
         }
 
-        public static void AddContinuation(PlayerLoopTiming timing, Action continuation)
+        public static void AddContinuation(Action continuation)
         {
-            Assert.AreEqual(PlayerLoopTiming.Update, timing, "Only Update timing is supported.");
             Assert.IsNotNull(updateYielder, "UniTask.PlayerLoopHelper is not initialized.");
             updateYielder.Enqueue(continuation);
         }
     }
 }
-

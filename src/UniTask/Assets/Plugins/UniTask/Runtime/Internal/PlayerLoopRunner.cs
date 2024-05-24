@@ -8,7 +8,6 @@ namespace Cysharp.Threading.Tasks.Internal
     {
         const int InitialSize = 16;
 
-        readonly PlayerLoopTiming timing;
         readonly object runningAndQueueLock = new object();
         readonly object arrayLock = new object();
         readonly Action<Exception> unhandledExceptionCallback;
@@ -20,10 +19,9 @@ namespace Cysharp.Threading.Tasks.Internal
 
 
 
-        public PlayerLoopRunner(PlayerLoopTiming timing)
+        public PlayerLoopRunner()
         {
             this.unhandledExceptionCallback = ex => Debug.LogException(ex);
-            this.timing = timing;
         }
 
         public void AddAction(IPlayerLoopItem item)
@@ -74,14 +72,7 @@ namespace Cysharp.Threading.Tasks.Internal
         {
             // for debugging, create named stacktrace.
 #if DEBUG
-            switch (timing)
-            {
-                case PlayerLoopTiming.Update:
-                    Update();
-                    break;
-                default:
-                    break;
-            }
+            Update();
 #else
             RunCore();
 #endif

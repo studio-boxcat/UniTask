@@ -15,15 +15,7 @@ namespace Cysharp.Threading.Tasks
         /// </summary>
         public static SwitchToMainThreadAwaitable SwitchToMainThread(CancellationToken cancellationToken = default)
         {
-            return new SwitchToMainThreadAwaitable(PlayerLoopTiming.Update, cancellationToken);
-        }
-
-        /// <summary>
-        /// If running on mainthread, do nothing. Otherwise, same as UniTask.Yield(timing).
-        /// </summary>
-        public static SwitchToMainThreadAwaitable SwitchToMainThread(PlayerLoopTiming timing, CancellationToken cancellationToken = default)
-        {
-            return new SwitchToMainThreadAwaitable(timing, cancellationToken);
+            return new SwitchToMainThreadAwaitable(cancellationToken);
         }
 
         /// <summary>
@@ -31,15 +23,7 @@ namespace Cysharp.Threading.Tasks
         /// </summary>
         public static ReturnToMainThread ReturnToMainThread(CancellationToken cancellationToken = default)
         {
-            return new ReturnToMainThread(PlayerLoopTiming.Update, cancellationToken);
-        }
-
-        /// <summary>
-        /// Return to mainthread(same as await SwitchToMainThread) after using scope is closed.
-        /// </summary>
-        public static ReturnToMainThread ReturnToMainThread(PlayerLoopTiming timing, CancellationToken cancellationToken = default)
-        {
-            return new ReturnToMainThread(timing, cancellationToken);
+            return new ReturnToMainThread(cancellationToken);
         }
 
         public static SwitchToThreadPoolAwaitable SwitchToThreadPool()
@@ -74,25 +58,21 @@ namespace Cysharp.Threading.Tasks
 
     public struct SwitchToMainThreadAwaitable
     {
-        readonly PlayerLoopTiming playerLoopTiming;
         readonly CancellationToken cancellationToken;
 
-        public SwitchToMainThreadAwaitable(PlayerLoopTiming playerLoopTiming, CancellationToken cancellationToken)
+        public SwitchToMainThreadAwaitable(CancellationToken cancellationToken)
         {
-            this.playerLoopTiming = playerLoopTiming;
             this.cancellationToken = cancellationToken;
         }
 
-        public Awaiter GetAwaiter() => new Awaiter(playerLoopTiming, cancellationToken);
+        public Awaiter GetAwaiter() => new Awaiter(cancellationToken);
 
         public struct Awaiter : ICriticalNotifyCompletion
         {
-            readonly PlayerLoopTiming playerLoopTiming;
             readonly CancellationToken cancellationToken;
 
-            public Awaiter(PlayerLoopTiming playerLoopTiming, CancellationToken cancellationToken)
+            public Awaiter(CancellationToken cancellationToken)
             {
-                this.playerLoopTiming = playerLoopTiming;
                 this.cancellationToken = cancellationToken;
             }
 
@@ -116,40 +96,36 @@ namespace Cysharp.Threading.Tasks
 
             public void OnCompleted(Action continuation)
             {
-                PlayerLoopHelper.AddContinuation(playerLoopTiming, continuation);
+                PlayerLoopHelper.AddContinuation(continuation);
             }
 
             public void UnsafeOnCompleted(Action continuation)
             {
-                PlayerLoopHelper.AddContinuation(playerLoopTiming, continuation);
+                PlayerLoopHelper.AddContinuation(continuation);
             }
         }
     }
 
     public struct ReturnToMainThread
     {
-        readonly PlayerLoopTiming playerLoopTiming;
         readonly CancellationToken cancellationToken;
 
-        public ReturnToMainThread(PlayerLoopTiming playerLoopTiming, CancellationToken cancellationToken)
+        public ReturnToMainThread(CancellationToken cancellationToken)
         {
-            this.playerLoopTiming = playerLoopTiming;
             this.cancellationToken = cancellationToken;
         }
 
         public Awaiter DisposeAsync()
         {
-            return new Awaiter(playerLoopTiming, cancellationToken); // run immediate.
+            return new Awaiter(cancellationToken); // run immediate.
         }
 
         public readonly struct Awaiter : ICriticalNotifyCompletion
         {
-            readonly PlayerLoopTiming timing;
             readonly CancellationToken cancellationToken;
 
-            public Awaiter(PlayerLoopTiming timing, CancellationToken cancellationToken)
+            public Awaiter(CancellationToken cancellationToken)
             {
-                this.timing = timing;
                 this.cancellationToken = cancellationToken;
             }
 
@@ -161,12 +137,12 @@ namespace Cysharp.Threading.Tasks
 
             public void OnCompleted(Action continuation)
             {
-                PlayerLoopHelper.AddContinuation(timing, continuation);
+                PlayerLoopHelper.AddContinuation(continuation);
             }
 
             public void UnsafeOnCompleted(Action continuation)
             {
-                PlayerLoopHelper.AddContinuation(timing, continuation);
+                PlayerLoopHelper.AddContinuation(continuation);
             }
         }
     }

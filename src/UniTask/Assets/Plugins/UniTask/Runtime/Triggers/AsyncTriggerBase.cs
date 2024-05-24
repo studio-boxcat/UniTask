@@ -30,7 +30,7 @@ namespace Cysharp.Threading.Tasks.Triggers
         {
             if (!calledAwake)
             {
-                PlayerLoopHelper.AddAction(PlayerLoopTiming.Update, new AwakeMonitor(this));
+                PlayerLoopHelper.AddAction(new AwakeMonitor(this));
             }
 
             triggerEvent.Add(handler);
@@ -40,7 +40,7 @@ namespace Cysharp.Threading.Tasks.Triggers
         {
             if (!calledAwake)
             {
-                PlayerLoopHelper.AddAction(PlayerLoopTiming.Update, new AwakeMonitor(this));
+                PlayerLoopHelper.AddAction(new AwakeMonitor(this));
             }
 
             triggerEvent.Remove(handler);

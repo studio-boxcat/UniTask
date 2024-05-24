@@ -10,8 +10,6 @@ namespace Cysharp.Threading.Tasks.Internal
         const int MaxArrayLength = 0X7FEFFFFF;
         const int InitialSize = 16;
 
-        readonly PlayerLoopTiming timing;
-
         SpinLock gate = new SpinLock(false);
         bool dequing = false;
 
@@ -20,11 +18,6 @@ namespace Cysharp.Threading.Tasks.Internal
 
         int waitingListCount = 0;
         Action[] waitingList = new Action[InitialSize];
-
-        public ContinuationQueue(PlayerLoopTiming timing)
-        {
-            this.timing = timing;
-        }
 
         public void Enqueue(Action continuation)
         {
@@ -88,14 +81,7 @@ namespace Cysharp.Threading.Tasks.Internal
         {
             // for debugging, create named stacktrace.
 #if DEBUG
-            switch (timing)
-            {
-                case PlayerLoopTiming.Update:
-                    Update();
-                    break;
-                default:
-                    break;
-            }
+            Update();
 #else
             RunCore();
 #endif

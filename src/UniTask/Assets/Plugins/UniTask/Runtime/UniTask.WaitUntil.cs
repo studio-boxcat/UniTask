@@ -7,19 +7,19 @@ namespace Cysharp.Threading.Tasks
 {
     public partial struct UniTask
     {
-        public static UniTask WaitUntil(Func<bool> predicate, PlayerLoopTiming timing = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask WaitUntil(Func<bool> predicate, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return new UniTask(WaitUntilPromise.Create(predicate, timing, cancellationToken, out var token), token);
+            return new UniTask(WaitUntilPromise.Create(predicate, cancellationToken, out var token), token);
         }
 
-        public static UniTask WaitWhile(Func<bool> predicate, PlayerLoopTiming timing = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask WaitWhile(Func<bool> predicate, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return new UniTask(WaitWhilePromise.Create(predicate, timing, cancellationToken, out var token), token);
+            return new UniTask(WaitWhilePromise.Create(predicate, cancellationToken, out var token), token);
         }
 
-        public static UniTask WaitUntilCanceled(CancellationToken cancellationToken, PlayerLoopTiming timing = PlayerLoopTiming.Update)
+        public static UniTask WaitUntilCanceled(CancellationToken cancellationToken)
         {
-            return new UniTask(WaitUntilCanceledPromise.Create(cancellationToken, timing, out var token), token);
+            return new UniTask(WaitUntilCanceledPromise.Create(cancellationToken, out var token), token);
         }
 
         sealed class WaitUntilPromise : IUniTaskSource, IPlayerLoopItem, ITaskPoolNode<WaitUntilPromise>
@@ -42,7 +42,7 @@ namespace Cysharp.Threading.Tasks
             {
             }
 
-            public static IUniTaskSource Create(Func<bool> predicate, PlayerLoopTiming timing, CancellationToken cancellationToken, out short token)
+            public static IUniTaskSource Create(Func<bool> predicate, CancellationToken cancellationToken, out short token)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -59,7 +59,7 @@ namespace Cysharp.Threading.Tasks
 
                 TaskTracker.TrackActiveTask(result, 3);
 
-                PlayerLoopHelper.AddAction(timing, result);
+                PlayerLoopHelper.AddAction(result);
 
                 token = result.core.Version;
                 return result;
@@ -147,7 +147,7 @@ namespace Cysharp.Threading.Tasks
             {
             }
 
-            public static IUniTaskSource Create(Func<bool> predicate, PlayerLoopTiming timing, CancellationToken cancellationToken, out short token)
+            public static IUniTaskSource Create(Func<bool> predicate, CancellationToken cancellationToken, out short token)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -164,7 +164,7 @@ namespace Cysharp.Threading.Tasks
 
                 TaskTracker.TrackActiveTask(result, 3);
 
-                PlayerLoopHelper.AddAction(timing, result);
+                PlayerLoopHelper.AddAction(result);
 
                 token = result.core.Version;
                 return result;
@@ -251,7 +251,7 @@ namespace Cysharp.Threading.Tasks
             {
             }
 
-            public static IUniTaskSource Create(CancellationToken cancellationToken, PlayerLoopTiming timing, out short token)
+            public static IUniTaskSource Create(CancellationToken cancellationToken, out short token)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -267,7 +267,7 @@ namespace Cysharp.Threading.Tasks
 
                 TaskTracker.TrackActiveTask(result, 3);
 
-                PlayerLoopHelper.AddAction(timing, result);
+                PlayerLoopHelper.AddAction(result);
 
                 token = result.core.Version;
                 return result;

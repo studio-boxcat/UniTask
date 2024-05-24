@@ -34,7 +34,7 @@ namespace Cysharp.Threading.Tasks.Triggers
                     cancellationTokenSource = new CancellationTokenSource();
                     if (!awakeCalled)
                     {
-                        PlayerLoopHelper.AddAction(PlayerLoopTiming.Update, new AwakeMonitor(this));
+                        PlayerLoopHelper.AddAction(new AwakeMonitor(this));
                     }
                 }
                 return cancellationTokenSource.Token;

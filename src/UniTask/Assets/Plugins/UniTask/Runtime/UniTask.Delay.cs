@@ -24,23 +24,12 @@ namespace Cysharp.Threading.Tasks
         public static YieldAwaitable Yield()
         {
             // optimized for single continuation
-            return new YieldAwaitable(PlayerLoopTiming.Update);
-        }
-
-        public static YieldAwaitable Yield(PlayerLoopTiming timing)
-        {
-            // optimized for single continuation
-            return new YieldAwaitable(timing);
+            return new YieldAwaitable();
         }
 
         public static UniTask Yield(CancellationToken cancellationToken)
         {
-            return new UniTask(YieldPromise.Create(PlayerLoopTiming.Update, cancellationToken, out var token), token);
-        }
-
-        public static UniTask Yield(PlayerLoopTiming timing, CancellationToken cancellationToken)
-        {
-            return new UniTask(YieldPromise.Create(timing, cancellationToken, out var token), token);
+            return new UniTask(YieldPromise.Create(cancellationToken, out var token), token);
         }
 
         /// <summary>
@@ -48,15 +37,7 @@ namespace Cysharp.Threading.Tasks
         /// </summary>
         public static UniTask NextFrame()
         {
-            return new UniTask(NextFramePromise.Create(PlayerLoopTiming.Update, CancellationToken.None, out var token), token);
-        }
-
-        /// <summary>
-        /// Similar as UniTask.Yield but guaranteed run on next frame.
-        /// </summary>
-        public static UniTask NextFrame(PlayerLoopTiming timing)
-        {
-            return new UniTask(NextFramePromise.Create(timing, CancellationToken.None, out var token), token);
+            return new UniTask(NextFramePromise.Create(CancellationToken.None, out var token), token);
         }
 
         /// <summary>
@@ -64,15 +45,7 @@ namespace Cysharp.Threading.Tasks
         /// </summary>
         public static UniTask NextFrame(CancellationToken cancellationToken)
         {
-            return new UniTask(NextFramePromise.Create(PlayerLoopTiming.Update, cancellationToken, out var token), token);
-        }
-
-        /// <summary>
-        /// Similar as UniTask.Yield but guaranteed run on next frame.
-        /// </summary>
-        public static UniTask NextFrame(PlayerLoopTiming timing, CancellationToken cancellationToken)
-        {
-            return new UniTask(NextFramePromise.Create(timing, cancellationToken, out var token), token);
+            return new UniTask(NextFramePromise.Create(cancellationToken, out var token), token);
         }
 
         public static UniTask WaitForEndOfFrame(MonoBehaviour coroutineRunner, CancellationToken cancellationToken = default)
@@ -81,45 +54,45 @@ namespace Cysharp.Threading.Tasks
             return new UniTask(source, token);
         }
 
-		public static UniTask WaitForSeconds(float duration, bool ignoreTimeScale = false, PlayerLoopTiming delayTiming = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken))
+		public static UniTask WaitForSeconds(float duration, bool ignoreTimeScale = false, CancellationToken cancellationToken = default(CancellationToken))
 		{
-			return Delay(Mathf.RoundToInt(1000 * duration), ignoreTimeScale, delayTiming, cancellationToken);
+			return Delay(Mathf.RoundToInt(1000 * duration), ignoreTimeScale, cancellationToken);
 		}
 
-		public static UniTask WaitForSeconds(int duration, bool ignoreTimeScale = false, PlayerLoopTiming delayTiming = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken))
+		public static UniTask WaitForSeconds(int duration, bool ignoreTimeScale = false, CancellationToken cancellationToken = default(CancellationToken))
 		{
-			return Delay(1000 * duration, ignoreTimeScale, delayTiming, cancellationToken);
+			return Delay(1000 * duration, ignoreTimeScale, cancellationToken);
 		}
 
-        public static UniTask DelayFrame(int delayFrameCount, PlayerLoopTiming delayTiming = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask DelayFrame(int delayFrameCount, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (delayFrameCount < 0)
             {
                 throw new ArgumentOutOfRangeException("Delay does not allow minus delayFrameCount. delayFrameCount:" + delayFrameCount);
             }
 
-            return new UniTask(DelayFramePromise.Create(delayFrameCount, delayTiming, cancellationToken, out var token), token);
+            return new UniTask(DelayFramePromise.Create(delayFrameCount, cancellationToken, out var token), token);
         }
 
-        public static UniTask Delay(int millisecondsDelay, bool ignoreTimeScale = false, PlayerLoopTiming delayTiming = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask Delay(int millisecondsDelay, bool ignoreTimeScale = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             var delayTimeSpan = TimeSpan.FromMilliseconds(millisecondsDelay);
-            return Delay(delayTimeSpan, ignoreTimeScale, delayTiming, cancellationToken);
+            return Delay(delayTimeSpan, ignoreTimeScale, cancellationToken);
         }
 
-        public static UniTask Delay(TimeSpan delayTimeSpan, bool ignoreTimeScale = false, PlayerLoopTiming delayTiming = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask Delay(TimeSpan delayTimeSpan, bool ignoreTimeScale = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             var delayType = ignoreTimeScale ? DelayType.UnscaledDeltaTime : DelayType.DeltaTime;
-            return Delay(delayTimeSpan, delayType, delayTiming, cancellationToken);
+            return Delay(delayTimeSpan, delayType, cancellationToken);
         }
 
-        public static UniTask Delay(int millisecondsDelay, DelayType delayType, PlayerLoopTiming delayTiming = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask Delay(int millisecondsDelay, DelayType delayType, CancellationToken cancellationToken = default(CancellationToken))
         {
             var delayTimeSpan = TimeSpan.FromMilliseconds(millisecondsDelay);
-            return Delay(delayTimeSpan, delayType, delayTiming, cancellationToken);
+            return Delay(delayTimeSpan, delayType, cancellationToken);
         }
 
-        public static UniTask Delay(TimeSpan delayTimeSpan, DelayType delayType, PlayerLoopTiming delayTiming = PlayerLoopTiming.Update, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask Delay(TimeSpan delayTimeSpan, DelayType delayType, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (delayTimeSpan < TimeSpan.Zero)
             {
@@ -138,16 +111,16 @@ namespace Cysharp.Threading.Tasks
             {
                 case DelayType.UnscaledDeltaTime:
                     {
-                        return new UniTask(DelayIgnoreTimeScalePromise.Create(delayTimeSpan, delayTiming, cancellationToken, out var token), token);
+                        return new UniTask(DelayIgnoreTimeScalePromise.Create(delayTimeSpan, cancellationToken, out var token), token);
                     }
                 case DelayType.Realtime:
                     {
-                        return new UniTask(DelayRealtimePromise.Create(delayTimeSpan, delayTiming, cancellationToken, out var token), token);
+                        return new UniTask(DelayRealtimePromise.Create(delayTimeSpan, cancellationToken, out var token), token);
                     }
                 case DelayType.DeltaTime:
                 default:
                     {
-                        return new UniTask(DelayPromise.Create(delayTimeSpan, delayTiming, cancellationToken, out var token), token);
+                        return new UniTask(DelayPromise.Create(delayTimeSpan, cancellationToken, out var token), token);
                     }
             }
         }
@@ -170,7 +143,7 @@ namespace Cysharp.Threading.Tasks
             {
             }
 
-            public static IUniTaskSource Create(PlayerLoopTiming timing, CancellationToken cancellationToken, out short token)
+            public static IUniTaskSource Create(CancellationToken cancellationToken, out short token)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -187,7 +160,7 @@ namespace Cysharp.Threading.Tasks
 
                 TaskTracker.TrackActiveTask(result, 3);
 
-                PlayerLoopHelper.AddAction(timing, result);
+                PlayerLoopHelper.AddAction(result);
 
                 token = result.core.Version;
                 return result;
@@ -260,7 +233,7 @@ namespace Cysharp.Threading.Tasks
             {
             }
 
-            public static IUniTaskSource Create(PlayerLoopTiming timing, CancellationToken cancellationToken, out short token)
+            public static IUniTaskSource Create(CancellationToken cancellationToken, out short token)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -277,7 +250,7 @@ namespace Cysharp.Threading.Tasks
 
                 TaskTracker.TrackActiveTask(result, 3);
 
-                PlayerLoopHelper.AddAction(timing, result);
+                PlayerLoopHelper.AddAction(result);
 
                 token = result.core.Version;
                 return result;
@@ -465,7 +438,7 @@ namespace Cysharp.Threading.Tasks
             {
             }
 
-            public static IUniTaskSource Create(int delayFrameCount, PlayerLoopTiming timing, CancellationToken cancellationToken, out short token)
+            public static IUniTaskSource Create(int delayFrameCount, CancellationToken cancellationToken, out short token)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -483,7 +456,7 @@ namespace Cysharp.Threading.Tasks
 
                 TaskTracker.TrackActiveTask(result, 3);
 
-                PlayerLoopHelper.AddAction(timing, result);
+                PlayerLoopHelper.AddAction(result);
 
                 token = result.core.Version;
                 return result;
@@ -593,7 +566,7 @@ namespace Cysharp.Threading.Tasks
             {
             }
 
-            public static IUniTaskSource Create(TimeSpan delayTimeSpan, PlayerLoopTiming timing, CancellationToken cancellationToken, out short token)
+            public static IUniTaskSource Create(TimeSpan delayTimeSpan, CancellationToken cancellationToken, out short token)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -612,7 +585,7 @@ namespace Cysharp.Threading.Tasks
 
                 TaskTracker.TrackActiveTask(result, 3);
 
-                PlayerLoopHelper.AddAction(timing, result);
+                PlayerLoopHelper.AddAction(result);
 
                 token = result.core.Version;
                 return result;
@@ -704,7 +677,7 @@ namespace Cysharp.Threading.Tasks
             {
             }
 
-            public static IUniTaskSource Create(TimeSpan delayFrameTimeSpan, PlayerLoopTiming timing, CancellationToken cancellationToken, out short token)
+            public static IUniTaskSource Create(TimeSpan delayFrameTimeSpan, CancellationToken cancellationToken, out short token)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -723,7 +696,7 @@ namespace Cysharp.Threading.Tasks
 
                 TaskTracker.TrackActiveTask(result, 3);
 
-                PlayerLoopHelper.AddAction(timing, result);
+                PlayerLoopHelper.AddAction(result);
 
                 token = result.core.Version;
                 return result;
@@ -814,7 +787,7 @@ namespace Cysharp.Threading.Tasks
             {
             }
 
-            public static IUniTaskSource Create(TimeSpan delayTimeSpan, PlayerLoopTiming timing, CancellationToken cancellationToken, out short token)
+            public static IUniTaskSource Create(TimeSpan delayTimeSpan, CancellationToken cancellationToken, out short token)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -832,7 +805,7 @@ namespace Cysharp.Threading.Tasks
 
                 TaskTracker.TrackActiveTask(result, 3);
 
-                PlayerLoopHelper.AddAction(timing, result);
+                PlayerLoopHelper.AddAction(result);
 
                 token = result.core.Version;
                 return result;
@@ -901,44 +874,30 @@ namespace Cysharp.Threading.Tasks
 
     public readonly struct YieldAwaitable
     {
-        readonly PlayerLoopTiming timing;
-
-        public YieldAwaitable(PlayerLoopTiming timing)
-        {
-            this.timing = timing;
-        }
-
         public Awaiter GetAwaiter()
         {
-            return new Awaiter(timing);
+            return new Awaiter();
         }
 
         public UniTask ToUniTask()
         {
-            return UniTask.Yield(timing, CancellationToken.None);
+            return UniTask.Yield(CancellationToken.None);
         }
 
         public readonly struct Awaiter : ICriticalNotifyCompletion
         {
-            readonly PlayerLoopTiming timing;
-
-            public Awaiter(PlayerLoopTiming timing)
-            {
-                this.timing = timing;
-            }
-
             public bool IsCompleted => false;
 
             public void GetResult() { }
 
             public void OnCompleted(Action continuation)
             {
-                PlayerLoopHelper.AddContinuation(timing, continuation);
+                PlayerLoopHelper.AddContinuation(continuation);
             }
 
             public void UnsafeOnCompleted(Action continuation)
             {
-                PlayerLoopHelper.AddContinuation(timing, continuation);
+                PlayerLoopHelper.AddContinuation(continuation);
             }
         }
     }
