@@ -32,12 +32,6 @@ namespace Cysharp.Threading.Tasks.Internal
         {
             throw new InvalidOperationException(message);
         }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void ThrowOperationCanceledException()
-        {
-            throw new OperationCanceledException();
-        }
     }
 }
 

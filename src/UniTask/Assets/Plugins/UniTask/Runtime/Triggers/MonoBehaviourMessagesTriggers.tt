@@ -11,11 +11,6 @@
         ("Disable", "OnDisable", "AsyncUnit", null, empty),
         ("Update", "Update", "AsyncUnit", null, empty),
 
-        ("RectTransformDimensionsChange", "OnRectTransformDimensionsChange", "AsyncUnit", null, empty),
-        ("BeforeTransformParentChanged", "OnBeforeTransformParentChanged", "AsyncUnit", null, empty),
-        ("TransformParentChanged", "OnTransformParentChanged", "AsyncUnit", null, empty),
-        ("TransformChildrenChanged", "OnTransformChildrenChanged", "AsyncUnit", null, empty),
-
         // uGUI
         ("BeginDrag", "OnBeginDrag", "PointerEventData", "IBeginDragHandler", new []{ ("PointerEventData", "eventData") }),
         ("Drag", "OnDrag", "PointerEventData", "IDragHandler", new []{ ("PointerEventData", "eventData") }),
