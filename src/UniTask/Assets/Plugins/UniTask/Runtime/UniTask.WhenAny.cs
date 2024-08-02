@@ -19,27 +19,10 @@ namespace Cysharp.Threading.Tasks
             return new UniTask<(int, T)>(new WhenAnyPromise<T>(tasks, tasks.Length), 0);
         }
 
-        public static UniTask<(int winArgumentIndex, T result)> WhenAny<T>(IEnumerable<UniTask<T>> tasks)
-        {
-            using (var span = ArrayPoolUtil.Materialize(tasks))
-            {
-                return new UniTask<(int, T)>(new WhenAnyPromise<T>(span.Array, span.Length), 0);
-            }
-        }
-
         /// <summary>Return value is winArgumentIndex</summary>
         public static UniTask<int> WhenAny(params UniTask[] tasks)
         {
             return new UniTask<int>(new WhenAnyPromise(tasks, tasks.Length), 0);
-        }
-
-        /// <summary>Return value is winArgumentIndex</summary>
-        public static UniTask<int> WhenAny(IEnumerable<UniTask> tasks)
-        {
-            using (var span = ArrayPoolUtil.Materialize(tasks))
-            {
-                return new UniTask<int>(new WhenAnyPromise(span.Array, span.Length), 0);
-            }
         }
 
         sealed class WhenAnyLRPromise<T> : IUniTaskSource<(bool, T)>
