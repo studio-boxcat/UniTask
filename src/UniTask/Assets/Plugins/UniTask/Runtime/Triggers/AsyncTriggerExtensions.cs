@@ -28,16 +28,6 @@ namespace Cysharp.Threading.Tasks.Triggers
         {
             return component.GetAsyncDestroyTrigger().OnDestroyAsync();
         }
-
-        public static UniTask StartAsync(this GameObject gameObject)
-        {
-            return gameObject.GetAsyncStartTrigger().StartAsync();
-        }
-
-        public static UniTask StartAsync(this Component component)
-        {
-            return component.GetAsyncStartTrigger().StartAsync();
-        }
     }
 }
 
