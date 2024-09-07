@@ -1,6 +1,5 @@
 ﻿#pragma warning disable CS1591
 
-using Cysharp.Threading.Tasks.Internal;
 using System;
 using System.Linq;
 using System.Diagnostics;
@@ -16,10 +15,6 @@ namespace Cysharp.Threading.Tasks.CompilerServices
     {
         Action MoveNext { get; }
         void Return();
-
-#if ENABLE_IL2CPP
-        Action ReturnAction { get; }
-#endif
     }
 
     internal interface IStateMachineRunnerPromise : IUniTaskSource
@@ -54,10 +49,6 @@ namespace Cysharp.Threading.Tasks.CompilerServices
     {
         static TaskPool<AsyncUniTaskVoid<TStateMachine>> pool;
 
-#if ENABLE_IL2CPP
-        public Action ReturnAction { get; }
-#endif
-
         TStateMachine stateMachine;
 
         public Action MoveNext { get; }
@@ -65,9 +56,6 @@ namespace Cysharp.Threading.Tasks.CompilerServices
         public AsyncUniTaskVoid()
         {
             MoveNext = Run;
-#if ENABLE_IL2CPP
-            ReturnAction = Return;
-#endif
         }
 
         public static void SetStateMachine(ref TStateMachine stateMachine, ref IStateMachineRunner runnerFieldRef)
@@ -130,9 +118,6 @@ namespace Cysharp.Threading.Tasks.CompilerServices
     {
         static TaskPool<AsyncUniTask<TStateMachine>> pool;
 
-#if ENABLE_IL2CPP
-        readonly Action returnDelegate;  
-#endif
         public Action MoveNext { get; }
 
         TStateMachine stateMachine;
@@ -141,9 +126,6 @@ namespace Cysharp.Threading.Tasks.CompilerServices
         AsyncUniTask()
         {
             MoveNext = Run;
-#if ENABLE_IL2CPP
-            returnDelegate = Return;
-#endif
         }
 
         public static void SetStateMachine(ref TStateMachine stateMachine, ref IStateMachineRunnerPromise runnerPromiseFieldRef)

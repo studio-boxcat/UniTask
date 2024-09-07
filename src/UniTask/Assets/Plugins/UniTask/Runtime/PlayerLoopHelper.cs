@@ -31,7 +31,6 @@ namespace Cysharp.Threading.Tasks
         static string applicationDataPath;
         static ContinuationQueue updateYielder;
         static PlayerLoopRunner updateRunner;
-        internal static bool IsEditorApplicationQuitting { get; private set; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         static void Init()
