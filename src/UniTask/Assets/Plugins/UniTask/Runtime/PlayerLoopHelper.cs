@@ -160,5 +160,14 @@ namespace Cysharp.Threading.Tasks
             Assert.IsNotNull(updateYielder, "UniTask.PlayerLoopHelper is not initialized.");
             updateYielder.Enqueue(continuation);
         }
+
+#if DEBUG
+        public static void ForceClearLoopItems()
+        {
+            L.I("[UniTask] PlayerLoopHelper.ForceClearLoopItems()");
+            updateRunner.Clear();
+            updateYielder.Clear();
+        }
+#endif
     }
 }
