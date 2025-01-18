@@ -2,9 +2,7 @@
 
 using System.Threading;
 using UnityEngine;
-#if UNITASK_UGUI_SUPPORT
 using UnityEngine.EventSystems;
-#endif
 
 namespace Cysharp.Threading.Tasks.Triggers
 {
@@ -186,7 +184,6 @@ namespace Cysharp.Threading.Tasks.Triggers
 #endregion
 
 #region BeginDrag
-#if UNITASK_UGUI_SUPPORT
 
     public interface IAsyncOnBeginDragHandler
     {
@@ -243,11 +240,9 @@ namespace Cysharp.Threading.Tasks.Triggers
             return ((IAsyncOnBeginDragHandler)new AsyncTriggerHandler<PointerEventData>(this, cancellationToken, true)).OnBeginDragAsync();
         }
     }
-#endif
 #endregion
 
 #region Drag
-#if UNITASK_UGUI_SUPPORT
 
     public interface IAsyncOnDragHandler
     {
@@ -304,11 +299,9 @@ namespace Cysharp.Threading.Tasks.Triggers
             return ((IAsyncOnDragHandler)new AsyncTriggerHandler<PointerEventData>(this, cancellationToken, true)).OnDragAsync();
         }
     }
-#endif
 #endregion
 
 #region Drop
-#if UNITASK_UGUI_SUPPORT
 
     public interface IAsyncOnDropHandler
     {
@@ -365,11 +358,9 @@ namespace Cysharp.Threading.Tasks.Triggers
             return ((IAsyncOnDropHandler)new AsyncTriggerHandler<PointerEventData>(this, cancellationToken, true)).OnDropAsync();
         }
     }
-#endif
 #endregion
 
 #region EndDrag
-#if UNITASK_UGUI_SUPPORT
 
     public interface IAsyncOnEndDragHandler
     {
@@ -426,11 +417,9 @@ namespace Cysharp.Threading.Tasks.Triggers
             return ((IAsyncOnEndDragHandler)new AsyncTriggerHandler<PointerEventData>(this, cancellationToken, true)).OnEndDragAsync();
         }
     }
-#endif
 #endregion
 
 #region InitializePotentialDrag
-#if UNITASK_UGUI_SUPPORT
 
     public interface IAsyncOnInitializePotentialDragHandler
     {
@@ -487,11 +476,9 @@ namespace Cysharp.Threading.Tasks.Triggers
             return ((IAsyncOnInitializePotentialDragHandler)new AsyncTriggerHandler<PointerEventData>(this, cancellationToken, true)).OnInitializePotentialDragAsync();
         }
     }
-#endif
 #endregion
 
 #region PointerClick
-#if UNITASK_UGUI_SUPPORT
 
     public interface IAsyncOnPointerClickHandler
     {
@@ -548,11 +535,9 @@ namespace Cysharp.Threading.Tasks.Triggers
             return ((IAsyncOnPointerClickHandler)new AsyncTriggerHandler<PointerEventData>(this, cancellationToken, true)).OnPointerClickAsync();
         }
     }
-#endif
 #endregion
 
 #region PointerDown
-#if UNITASK_UGUI_SUPPORT
 
     public interface IAsyncOnPointerDownHandler
     {
@@ -609,11 +594,9 @@ namespace Cysharp.Threading.Tasks.Triggers
             return ((IAsyncOnPointerDownHandler)new AsyncTriggerHandler<PointerEventData>(this, cancellationToken, true)).OnPointerDownAsync();
         }
     }
-#endif
 #endregion
 
 #region PointerEnter
-#if UNITASK_UGUI_SUPPORT
 
     public interface IAsyncOnPointerEnterHandler
     {
@@ -670,11 +653,9 @@ namespace Cysharp.Threading.Tasks.Triggers
             return ((IAsyncOnPointerEnterHandler)new AsyncTriggerHandler<PointerEventData>(this, cancellationToken, true)).OnPointerEnterAsync();
         }
     }
-#endif
 #endregion
 
 #region PointerExit
-#if UNITASK_UGUI_SUPPORT
 
     public interface IAsyncOnPointerExitHandler
     {
@@ -731,11 +712,9 @@ namespace Cysharp.Threading.Tasks.Triggers
             return ((IAsyncOnPointerExitHandler)new AsyncTriggerHandler<PointerEventData>(this, cancellationToken, true)).OnPointerExitAsync();
         }
     }
-#endif
 #endregion
 
 #region PointerUp
-#if UNITASK_UGUI_SUPPORT
 
     public interface IAsyncOnPointerUpHandler
     {
@@ -792,7 +771,6 @@ namespace Cysharp.Threading.Tasks.Triggers
             return ((IAsyncOnPointerUpHandler)new AsyncTriggerHandler<PointerEventData>(this, cancellationToken, true)).OnPointerUpAsync();
         }
     }
-#endif
 #endregion
 
 }

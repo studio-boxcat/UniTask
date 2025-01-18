@@ -2,7 +2,6 @@
 
 namespace Cysharp.Threading.Tasks.Internal
 {
-#if ENABLE_UNITYWEBREQUEST
     internal static class UnityWebRequestResultExtensions
     {
         public static bool IsError(this UnityWebRequest unityWebRequest)
@@ -13,5 +12,4 @@ namespace Cysharp.Threading.Tasks.Internal
                 or UnityWebRequest.Result.ProtocolError;
         }
     }
-#endif
 }

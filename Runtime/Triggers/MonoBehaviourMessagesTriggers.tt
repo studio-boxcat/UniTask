@@ -38,17 +38,12 @@
 
 using System.Threading;
 using UnityEngine;
-#if UNITASK_UGUI_SUPPORT
 using UnityEngine.EventSystems;
-#endif
 
 namespace Cysharp.Threading.Tasks.Triggers
 {
 <# foreach(var t in triggers) { #>
 #region <#= t.triggerName #>
-<# if(IsUguiSystem(t.handlerInterface)) { #>
-#if UNITASK_UGUI_SUPPORT
-<# } #>
 
     public interface <#= ToInterfaceName(t.methodName) #>
     {
@@ -105,9 +100,6 @@ namespace Cysharp.Threading.Tasks.Triggers
             return ((<#= ToInterfaceName(t.methodName) #>)new AsyncTriggerHandler<<#= t.returnType #>>(this, cancellationToken, true)).<#= t.methodName #>Async();
         }
     }
-<# if(IsUguiSystem(t.handlerInterface)) { #>
-#endif
-<# } #>
 #endregion
 
 <# } #>

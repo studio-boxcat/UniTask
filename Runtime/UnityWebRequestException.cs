@@ -1,5 +1,3 @@
-#if ENABLE_UNITYWEBREQUEST && (!UNITY_2019_1_OR_NEWER || UNITASK_WEBREQUEST_SUPPORT)
-
 using System;
 using System.Collections.Generic;
 using UnityEngine.Networking;
@@ -53,5 +51,3 @@ namespace Cysharp.Threading.Tasks
         }
     }
 }
-
-#endif

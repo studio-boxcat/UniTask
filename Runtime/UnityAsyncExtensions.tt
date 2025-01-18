@@ -27,20 +27,13 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using UnityEngine;
 using Cysharp.Threading.Tasks.Internal;
-#if ENABLE_UNITYWEBREQUEST && (!UNITY_2019_1_OR_NEWER || UNITASK_WEBREQUEST_SUPPORT)
 using UnityEngine.Networking;
-#endif
 
 namespace Cysharp.Threading.Tasks
 {
     public static partial class UnityAsyncExtensions
     {
 <# foreach(var t in types) { #>
-<# if(IsUnityWebRequest(t)) { #>
-#if ENABLE_UNITYWEBREQUEST && (!UNITY_2019_1_OR_NEWER || UNITASK_WEBREQUEST_SUPPORT)
-<# } else if(IsAssetBundleModule(t)) { #>
-#if UNITASK_ASSETBUNDLE_SUPPORT
-<# } #>
         #region <#= t.typeName #>
 
         public static <#= t.typeName #>Awaiter GetAwaiter(this <#= t.typeName #> asyncOperation)
@@ -269,10 +262,6 @@ namespace Cysharp.Threading.Tasks
         }
 
         #endregion
-<# if(IsUnityWebRequest(t) || IsAssetBundleModule(t)) { #>
-#endif
-<# } #>
-
 <# } #>
     }
 }

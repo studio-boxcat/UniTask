@@ -1,13 +1,13 @@
-﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+﻿#define ENABLE_UNITYWEBREQUEST
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using UnityEngine;
 using Cysharp.Threading.Tasks.Internal;
-#if ENABLE_UNITYWEBREQUEST && (!UNITY_2019_1_OR_NEWER || UNITASK_WEBREQUEST_SUPPORT)
 using UnityEngine.Networking;
-#endif
 
 namespace Cysharp.Threading.Tasks
 {
@@ -361,7 +361,6 @@ namespace Cysharp.Threading.Tasks
 
         #endregion
 
-#if UNITASK_ASSETBUNDLE_SUPPORT
         #region AssetBundleRequest
 
         public static AssetBundleRequestAwaiter GetAwaiter(this AssetBundleRequest asyncOperation)
@@ -539,9 +538,7 @@ namespace Cysharp.Threading.Tasks
         }
 
         #endregion
-#endif
 
-#if UNITASK_ASSETBUNDLE_SUPPORT
         #region AssetBundleCreateRequest
 
         public static AssetBundleCreateRequestAwaiter GetAwaiter(this AssetBundleCreateRequest asyncOperation)
@@ -719,9 +716,7 @@ namespace Cysharp.Threading.Tasks
         }
 
         #endregion
-#endif
 
-#if ENABLE_UNITYWEBREQUEST && (!UNITY_2019_1_OR_NEWER || UNITASK_WEBREQUEST_SUPPORT)
         #region UnityWebRequestAsyncOperation
 
         public static UnityWebRequestAsyncOperationAwaiter GetAwaiter(this UnityWebRequestAsyncOperation asyncOperation)
@@ -926,7 +921,6 @@ namespace Cysharp.Threading.Tasks
         }
 
         #endregion
-#endif
 
     }
 }
