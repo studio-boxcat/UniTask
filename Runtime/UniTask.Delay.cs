@@ -86,6 +86,12 @@ namespace Cysharp.Threading.Tasks
             return Delay(delayTimeSpan, delayType, cancellationToken);
         }
 
+        public static UniTask DelaySec(float delay, bool ignoreTimeScale = false, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var delayType = ignoreTimeScale ? DelayType.UnscaledDeltaTime : DelayType.DeltaTime;
+            return Delay(TimeSpan.FromSeconds(delay), delayType, cancellationToken);
+        }
+
         public static UniTask Delay(int millisecondsDelay, DelayType delayType, CancellationToken cancellationToken = default(CancellationToken))
         {
             var delayTimeSpan = TimeSpan.FromMilliseconds(millisecondsDelay);
