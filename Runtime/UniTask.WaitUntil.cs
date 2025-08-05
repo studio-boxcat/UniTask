@@ -2,6 +2,7 @@
 
 using System;
 using System.Threading;
+using UnityEngine.Assertions;
 
 namespace Cysharp.Threading.Tasks
 {
@@ -9,17 +10,16 @@ namespace Cysharp.Threading.Tasks
     {
         public static UniTask WaitUntil(Func<bool> predicate, CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (cancellationToken.IsCancellationRequested) return FromCanceled(cancellationToken);
+            if (predicate()) return CompletedTask; // don't wait if the predicate is already true.
             return new UniTask(WaitUntilPromise.Create(predicate, cancellationToken, out var token), token);
         }
 
         public static UniTask WaitWhile(Func<bool> predicate, CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (cancellationToken.IsCancellationRequested) return FromCanceled(cancellationToken);
+            if (predicate() is false) return CompletedTask; // don't wait if the predicate is already false.
             return new UniTask(WaitWhilePromise.Create(predicate, cancellationToken, out var token), token);
-        }
-
-        public static UniTask WaitUntilCanceled(CancellationToken cancellationToken)
-        {
-            return new UniTask(WaitUntilCanceledPromise.Create(cancellationToken, out var token), token);
         }
 
         sealed class WaitUntilPromise : IUniTaskSource, IPlayerLoopItem, ITaskPoolNode<WaitUntilPromise>
@@ -44,10 +44,8 @@ namespace Cysharp.Threading.Tasks
 
             public static IUniTaskSource Create(Func<bool> predicate, CancellationToken cancellationToken, out short token)
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return AutoResetUniTaskCompletionSource.CreateFromCanceled(cancellationToken, out token);
-                }
+                Assert.IsFalse(cancellationToken.IsCancellationRequested,
+                    "cancellationToken.IsCancellationRequested must be checked before calling WaitUntilPromise.Create.");
 
                 if (!pool.TryPop(out var result))
                 {
@@ -149,10 +147,8 @@ namespace Cysharp.Threading.Tasks
 
             public static IUniTaskSource Create(Func<bool> predicate, CancellationToken cancellationToken, out short token)
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return AutoResetUniTaskCompletionSource.CreateFromCanceled(cancellationToken, out token);
-                }
+                Assert.IsFalse(cancellationToken.IsCancellationRequested,
+                    "cancellationToken.IsCancellationRequested must be checked before calling WaitWhilePromise.Create.");
 
                 if (!pool.TryPop(out var result))
                 {
@@ -227,94 +223,6 @@ namespace Cysharp.Threading.Tasks
                 TaskTracker.RemoveTracking(this);
                 core.Reset();
                 predicate = default;
-                cancellationToken = default;
-                return pool.TryPush(this);
-            }
-        }
-
-        sealed class WaitUntilCanceledPromise : IUniTaskSource, IPlayerLoopItem, ITaskPoolNode<WaitUntilCanceledPromise>
-        {
-            static TaskPool<WaitUntilCanceledPromise> pool;
-            WaitUntilCanceledPromise nextNode;
-            public ref WaitUntilCanceledPromise NextNode => ref nextNode;
-
-            static WaitUntilCanceledPromise()
-            {
-                TaskPool.RegisterSizeGetter(typeof(WaitUntilCanceledPromise), () => pool.Size);
-            }
-
-            CancellationToken cancellationToken;
-
-            UniTaskCompletionSourceCore<object> core;
-
-            WaitUntilCanceledPromise()
-            {
-            }
-
-            public static IUniTaskSource Create(CancellationToken cancellationToken, out short token)
-            {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return AutoResetUniTaskCompletionSource.CreateFromCanceled(cancellationToken, out token);
-                }
-
-                if (!pool.TryPop(out var result))
-                {
-                    result = new WaitUntilCanceledPromise();
-                }
-
-                result.cancellationToken = cancellationToken;
-
-                TaskTracker.TrackActiveTask(result, 3);
-
-                PlayerLoopHelper.AddAction(result);
-
-                token = result.core.Version;
-                return result;
-            }
-
-            public void GetResult(short token)
-            {
-                try
-                {
-                    core.GetResult(token);
-                }
-                finally
-                {
-                    TryReturn();
-                }
-            }
-
-            public UniTaskStatus GetStatus(short token)
-            {
-                return core.GetStatus(token);
-            }
-
-            public UniTaskStatus UnsafeGetStatus()
-            {
-                return core.UnsafeGetStatus();
-            }
-
-            public void OnCompleted(Action<object> continuation, object state, short token)
-            {
-                core.OnCompleted(continuation, state, token);
-            }
-
-            public bool MoveNext()
-            {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    core.TrySetResult(null);
-                    return false;
-                }
-
-                return true;
-            }
-
-            bool TryReturn()
-            {
-                TaskTracker.RemoveTracking(this);
-                core.Reset();
                 cancellationToken = default;
                 return pool.TryPush(this);
             }
