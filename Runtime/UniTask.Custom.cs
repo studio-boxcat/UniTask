@@ -21,10 +21,11 @@ namespace Cysharp.Threading.Tasks
             var sw = Stopwatch.StartNew();
             WaitWhile(() =>
             {
+                if (!scope) return false;
                 var dt = sw.Elapsed;
                 action(dt.TotalSeconds.F32());
                 sw.Restart();
-                return scope;
+                return true;
             }).Forget();
         }
 #endif
